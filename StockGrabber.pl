@@ -2,8 +2,6 @@
 use warnings;
 use strict;
 use LWP::Simple;
-#use HTML::TableExtract;
-#use HTML::TreeBuilder;
 use Finance::YahooQuote;
 use Data::Dumper;
 
@@ -13,12 +11,14 @@ useExtendedQueryFormat();
 my @stocks = ("AFSI", "AKRX", "AMG", "AOS", "BA", "BBSI", "BCOR", "BEAV", "BWLD", "CLB", "CTSH", "EEFT", 
               "EFII", "GILD", "HURN", "HXL", "IGTE", "JAZZ", "KS", "LFUS", "LOPE", "LVS", "MA", "MCK", 
               "MEOH", "MGA", "MIDD", "MKTX", "NKE", "PCP", "PII", "PKG", "PRAA", "PRGO", "RNET", "SAVE", 
-              "SBNY", "SBUX", "SHPG", "SIVB", "SNTS", "SSNC", "STN", "TRN", "UHAL", "WNS");
+              "SBNY", "SBUX", "SHPG", "SIVB", "SNTS", "SSNC", "STN", "TRN", "UHAL", "WNS","CVR","ESTE",
+              "ESYS","EVI","EVK","HEIA","LCI","MHH","NOG","SFBC","STZB","TIS","UIHC","WTT");
 
+#Grab most of the yahoo finance using api
 my @quotes = getquote @stocks;
 
 my %AllStocks;
-my $i = 0;
+my $i = 0; 
 
 print "Symbol,CompanyName,LastPrice,LastTradeDate,LastTradeTime,Change,PercentChange,Volume,AverageDailyVol,Bid,Ask,PreviousClose,".
       "TodaysOpen,DaysRange,52WeekRange,EarningsPerShare,PERatio,DividendPayDate,DividendPerShare,DividendYield,MarketCapitalization,".
@@ -85,7 +85,7 @@ for (my $i=0; $i < @stocks; $i++){
     $AllStocks{$stocks[$i]}{"ZacksRating"} = "";
     $AllStocks{$stocks[$i]}{"NavellierRisk"} = "";
     $AllStocks{$stocks[$i]}{"FoolRating"} = "";
-    my $YahooAnalyst = get("http://finance.yahoo.com/q/ao?s=$stocks[$i]+Analyst+Opinion") or die 'Unable to get page';
+    my $YahooAnalyst = get("http://finance.yahoo.com/q/ao?s=$stocks[$i]+Analyst+Opinion") or die 'Unable to get page yahoo finance with stock '.$stocks[$i];
     my @YahooAnalystRows = split("\n", $YahooAnalyst);
     foreach my $row (@YahooAnalystRows) {
         if ($row =~ /Mean Recommendation \(this week\):<\/td><td class="yfnc_tabledata1">/) {
@@ -102,7 +102,7 @@ for (my $i=0; $i < @stocks; $i++){
         }
     }
 
-    my $TheStreet = get("http://www.thestreet.com/quote/$stocks[$i]/details/analyst-ratings.html") or die 'Unable to get page';
+    my $TheStreet = get("http://www.thestreet.com/quote/$stocks[$i]/details/analyst-ratings.html") or die 'Unable to get page thestreet with stock '.$stocks[$i];
     my @TheStreetRows = split("\n", $TheStreet);
     foreach my $row (@TheStreetRows) {
         if ($row =~ /"LetterGradeRating":"/) {
@@ -115,7 +115,7 @@ for (my $i=0; $i < @stocks; $i++){
         }
     }
 
-    my $Navellier = get("http://navelliergrowth.investorplace.com/portfolio-grader/stock-report.html?t=$stocks[$i]") or die 'Unable to get page';
+    my $Navellier = get("http://navelliergrowth.investorplace.com/portfolio-grader/stock-report.html?t=$stocks[$i]") or die 'Unable to get navellier with stock '.$stocks[$i];
     my @NavellierRows = split("\n", $Navellier);
 
     for (my $x = 0; $x <= $#NavellierRows; ++$x) {
@@ -194,7 +194,7 @@ for (my $i=0; $i < @stocks; $i++){
         }
     }
 
-    my $MsnMoney = get("http://investing.money.msn.com/investments/stock-ratings/?symbol=$stocks[$i]") or die 'Unable to get page';
+    my $MsnMoney = get("http://investing.money.msn.com/investments/stock-ratings/?symbol=$stocks[$i]") or die 'Unable to get msn money with stock '.$stocks[$i];
     my @MsnMoneyRows = split("\n", $MsnMoney);
     for (my $x = 0; $x <= $#MsnMoneyRows; ++$x) {
         local $_ = $MsnMoneyRows[$x];
@@ -205,7 +205,7 @@ for (my $i=0; $i < @stocks; $i++){
         } 
     }
 
-    my $Zacks = get("http://www.zacks.com/stock/quote/$stocks[$i]?q=$stocks[$i]") or die 'Unable to get page';
+    my $Zacks = get("http://www.zacks.com/stock/quote/$stocks[$i]?q=$stocks[$i]") or die 'Unable to get zacks with stock '.$stocks[$i];
     my @ZacksRows = split("\n", $Zacks);
     foreach my $row (@ZacksRows) {
         if ($row =~ /<p>Zacks Rank : /) {
@@ -214,25 +214,42 @@ for (my $i=0; $i < @stocks; $i++){
             $AllStocks{$stocks[$i]}{"ZacksRating"} =~ s/.*<p>Zacks Rank : //;
             $AllStocks{$stocks[$i]}{"ZacksRating"} =~ s/-.*//;
 
+            # Handle NA
+            $AllStocks{$stocks[$i]}{"ZacksRating"} =~ s/ .*//;
+
             last;
         }
     }
     
     my $Fool = "";
     if ($AllStocks{$stocks[$i]}{"StockExchange"} eq "NYSE") {
-        $Fool = get("http://www.fool.com/quote/nyse/$stocks[$i]") or die 'Unable to get page';        
+        $Fool = get("http://www.fool.com/quote/nyse/$stocks[$i]") or $AllStocks{$stocks[$i]}{"FoolRating"} = "N/A";
+    } elsif ($AllStocks{$stocks[$i]}{"StockExchange"} eq "AMEX"){
+        $Fool = get("http://www.fool.com/quote/nysemkt/$stocks[$i]") or $AllStocks{$stocks[$i]}{"FoolRating"} = "N/A";
+    } elsif ($AllStocks{$stocks[$i]}{"StockExchange"} eq "NasdaqNM"){
+        $Fool = get("http://www.fool.com/quote/nasdaq/$stocks[$i]") or $AllStocks{$stocks[$i]}{"FoolRating"} = "N/A";
     } else {
-        $Fool = get("http://www.fool.com/quote/nasdaq/$stocks[$i]") or die 'Unable to get page';
-    }    
-    my @FoolRows = split("\n", $Fool);
-    foreach my $row (@FoolRows) {
-        if ($row =~ /stars-trans-lg.png" title="/) {
-            $AllStocks{$stocks[$i]}{"FoolRating"} = $row;
+        $AllStocks{$stocks[$i]}{"FoolRating"} = "N/A";
+    }
+    if ($AllStocks{$stocks[$i]}{"FoolRating"} ne "N/A") {
+        my @FoolRows = split("\n", $Fool);
+        foreach my $row (@FoolRows) {
+            if ($row =~ /stars-trans-lg.png" title="/) {
+                $AllStocks{$stocks[$i]}{"FoolRating"} = $row;
 
-            $AllStocks{$stocks[$i]}{"FoolRating"} =~ s/.*stars-trans-lg.png" title="//;
-            $AllStocks{$stocks[$i]}{"FoolRating"} =~ s/ .*//;
+                $AllStocks{$stocks[$i]}{"FoolRating"} =~ s/.*stars-trans-lg.png" title="//;
+                $AllStocks{$stocks[$i]}{"FoolRating"} =~ s/ .*//;
 
-            last;
+                if ($AllStocks{$stocks[$i]}{"FoolRating"} =~ "Unrated") {
+                    $AllStocks{$stocks[$i]}{"FoolRating"} = "N/A";
+                }
+
+                if ($AllStocks{$stocks[$i]}{"FoolRating"} =~ /^\s*$/) {
+                    $AllStocks{$stocks[$i]}{"FoolRating"} =~ "N/A";
+                }
+
+                last;
+            }
         }
     }
 
