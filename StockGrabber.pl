@@ -2,14 +2,11 @@
 use warnings;
 use strict;
 use LWP::Simple;
-use LWP::UserAgent;
 use Finance::YahooQuote;
 use Data::Dumper;
 
 $Finance::YahooQuote::TIMEOUT = 60;
 useExtendedQueryFormat();
-
- my $ua = LWP::UserAgent->new;
 
 my @stocks = ("AFSI", "AKRX", "AMG", "AOS", "BA", "BBSI", "BCOR", "BEAV", "BWLD", "CLB", "CTSH", "EEFT",
               "EFII", "GILD", "HURN", "HXL", "IGTE", "JAZZ", "KS", "LFUS", "LOPE", "LVS", "MA", "MCK",
