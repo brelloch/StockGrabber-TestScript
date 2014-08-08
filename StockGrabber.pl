@@ -2,15 +2,18 @@
 use warnings;
 use strict;
 use LWP::Simple;
+use LWP::UserAgent;
 use Finance::YahooQuote;
 use Data::Dumper;
 
 $Finance::YahooQuote::TIMEOUT = 60;
 useExtendedQueryFormat();
 
-my @stocks = ("AFSI", "AKRX", "AMG", "AOS", "BA", "BBSI", "BCOR", "BEAV", "BWLD", "CLB", "CTSH", "EEFT", 
-              "EFII", "GILD", "HURN", "HXL", "IGTE", "JAZZ", "KS", "LFUS", "LOPE", "LVS", "MA", "MCK", 
-              "MEOH", "MGA", "MIDD", "MKTX", "NKE", "PCP", "PII", "PKG", "PRAA", "PRGO", "RNET", "SAVE", 
+ my $ua = LWP::UserAgent->new;
+
+my @stocks = ("AFSI", "AKRX", "AMG", "AOS", "BA", "BBSI", "BCOR", "BEAV", "BWLD", "CLB", "CTSH", "EEFT",
+              "EFII", "GILD", "HURN", "HXL", "IGTE", "JAZZ", "KS", "LFUS", "LOPE", "LVS", "MA", "MCK",
+              "MEOH", "MGA", "MIDD", "MKTX", "NKE", "PCP", "PII", "PKG", "PRAA", "PRGO", "RNET", "SAVE",
               "SBNY", "SBUX", "SHPG", "SIVB", "SNTS", "SSNC", "STN", "TRN", "UHAL", "WNS","CVR","ESTE",
               "ESYS","EVI","EVK","HEIA","LCI","MHH","NOG","SFBC","STZB","TIS","UIHC","WTT");
 
@@ -18,7 +21,7 @@ my @stocks = ("AFSI", "AKRX", "AMG", "AOS", "BA", "BBSI", "BCOR", "BEAV", "BWLD"
 my @quotes = getquote @stocks;
 
 my %AllStocks;
-my $i = 0; 
+my $i = 0;
 
 print "Symbol,CompanyName,LastPrice,LastTradeDate,LastTradeTime,Change,PercentChange,Volume,AverageDailyVol,Bid,Ask,PreviousClose,".
       "TodaysOpen,DaysRange,52WeekRange,EarningsPerShare,PERatio,DividendPayDate,DividendPerShare,DividendYield,MarketCapitalization,".
@@ -26,7 +29,7 @@ print "Symbol,CompanyName,LastPrice,LastTradeDate,LastTradeTime,Change,PercentCh
       "PEGRatio,BookValue,PriceBook,PriceSales,EBITDA,50DayMovingAvg,200DayMovingAvg,MeanRecommendation,NoOfBrokers,TheStreetRating,".
       "NavellierFundamentalGrade,NavellierSalesGrowth,NavellierOperatingMarginGrowth,NavellierEarningsGrowth,NavellierEarningsMomentum,".
       "NavellierEarningsSurprises,NavellierAnalystEarningsRevisions,NavellierCashFlow,NavellierReturnOnEquity,NavellierQuantitativeGrade,".
-      "NavellierTotalGrade,StockScout,ZacksRating,NavellierRisk,FoolRating\n";
+      "NavellierTotalGrade,StockScout,ZacksRating,NavellierRisk,MorningstarRating\n";
 
 
 for (my $i=0; $i < @stocks; $i++){
@@ -56,7 +59,7 @@ for (my $i=0; $i < @stocks; $i++){
     $AllStocks{$stocks[$i]}{"ShortRatio"} = $quotes[$i][22];
     $AllStocks{$stocks[$i]}{"1yrTargetPrice"} = $quotes[$i][23];
     $AllStocks{$stocks[$i]}{"EPSEstCurrentYr"} = $quotes[$i][24];
-    $AllStocks{$stocks[$i]}{"EPSEstNextYear"} = $quotes[$i][25];    
+    $AllStocks{$stocks[$i]}{"EPSEstNextYear"} = $quotes[$i][25];
     $AllStocks{$stocks[$i]}{"EPSEstNextQuarter"} = $quotes[$i][26];
     $AllStocks{$stocks[$i]}{"PriceEPSEstCurrentYr"} = $quotes[$i][27];
     $AllStocks{$stocks[$i]}{"PriceEPSEstNextYr"} = $quotes[$i][28];
@@ -66,14 +69,14 @@ for (my $i=0; $i < @stocks; $i++){
     $AllStocks{$stocks[$i]}{"PriceSales"} = $quotes[$i][32];
     $AllStocks{$stocks[$i]}{"EBITDA"} = $quotes[$i][33];
     $AllStocks{$stocks[$i]}{"50DayMovingAvg"} = $quotes[$i][34];
-    $AllStocks{$stocks[$i]}{"200DayMovingAvg"} = $quotes[$i][35];    
-    $AllStocks{$stocks[$i]}{"MeanRecommendation"} = ""; 
-    $AllStocks{$stocks[$i]}{"NoOfBrokers"} = ""; 
+    $AllStocks{$stocks[$i]}{"200DayMovingAvg"} = $quotes[$i][35];
+    $AllStocks{$stocks[$i]}{"MeanRecommendation"} = "";
+    $AllStocks{$stocks[$i]}{"NoOfBrokers"} = "";
     $AllStocks{$stocks[$i]}{"TheStreetRating"} = "";
     $AllStocks{$stocks[$i]}{"NavellierFundamentalGrade"} = "";
     $AllStocks{$stocks[$i]}{"NavellierSalesGrowth"} = "";
-    $AllStocks{$stocks[$i]}{"NavellierOperatingMarginGrowth"} = "";       
-    $AllStocks{$stocks[$i]}{"NavellierEarningsGrowth"} = "";  
+    $AllStocks{$stocks[$i]}{"NavellierOperatingMarginGrowth"} = "";
+    $AllStocks{$stocks[$i]}{"NavellierEarningsGrowth"} = "";
     $AllStocks{$stocks[$i]}{"NavellierEarningsMomentum"} = "";
     $AllStocks{$stocks[$i]}{"NavellierEarningsSurprises"} = "";
     $AllStocks{$stocks[$i]}{"NavellierAnalystEarningsRevisions"} = "";
@@ -84,7 +87,7 @@ for (my $i=0; $i < @stocks; $i++){
     $AllStocks{$stocks[$i]}{"StockScout"} = "";
     $AllStocks{$stocks[$i]}{"ZacksRating"} = "";
     $AllStocks{$stocks[$i]}{"NavellierRisk"} = "";
-    $AllStocks{$stocks[$i]}{"FoolRating"} = "";
+    $AllStocks{$stocks[$i]}{"MorningstarRating"} = "";
     my $YahooAnalyst = get("http://finance.yahoo.com/q/ao?s=$stocks[$i]+Analyst+Opinion") or die 'Unable to get page yahoo finance with stock '.$stocks[$i];
     my @YahooAnalystRows = split("\n", $YahooAnalyst);
     foreach my $row (@YahooAnalystRows) {
@@ -134,62 +137,62 @@ for (my $i=0; $i < @stocks; $i++){
             $AllStocks{$stocks[$i]}{"NavellierSalesGrowth"} = $NavellierRows[++$x];
             $AllStocks{$stocks[$i]}{"NavellierSalesGrowth"} =~ s/.*<td>//;
             $AllStocks{$stocks[$i]}{"NavellierSalesGrowth"} =~ s/<\/td>.*//;
-            
+
             next;
         } elsif (/Operating Margin Growth:/) {
             $AllStocks{$stocks[$i]}{"NavellierOperatingMarginGrowth"} = $NavellierRows[++$x];
             $AllStocks{$stocks[$i]}{"NavellierOperatingMarginGrowth"} =~ s/.*<td>//;
             $AllStocks{$stocks[$i]}{"NavellierOperatingMarginGrowth"} =~ s/<\/td>.*//;
-            
+
             next;
         } elsif (/Earnings Growth:/) {
             $AllStocks{$stocks[$i]}{"NavellierEarningsGrowth"} = $NavellierRows[++$x];
             $AllStocks{$stocks[$i]}{"NavellierEarningsGrowth"} =~ s/.*<td>//;
             $AllStocks{$stocks[$i]}{"NavellierEarningsGrowth"} =~ s/<\/td>.*//;
-            
+
             next;
         } elsif (/Earnings Momentum:/) {
             $AllStocks{$stocks[$i]}{"NavellierEarningsMomentum"} = $NavellierRows[++$x];
             $AllStocks{$stocks[$i]}{"NavellierEarningsMomentum"} =~ s/.*<td>//;
             $AllStocks{$stocks[$i]}{"NavellierEarningsMomentum"} =~ s/<\/td>.*//;
-            
+
             next;
         } elsif (/Earnings Surprises:/) {
             $AllStocks{$stocks[$i]}{"NavellierEarningsSurprises"} = $NavellierRows[++$x];
             $AllStocks{$stocks[$i]}{"NavellierEarningsSurprises"} =~ s/.*<td>//;
             $AllStocks{$stocks[$i]}{"NavellierEarningsSurprises"} =~ s/<\/td>.*//;
-            
+
             next;
         } elsif (/Analyst Earnings Revisions:/) {
             $AllStocks{$stocks[$i]}{"NavellierAnalystEarningsRevisions"} = $NavellierRows[++$x];
             $AllStocks{$stocks[$i]}{"NavellierAnalystEarningsRevisions"} =~ s/.*<td>//;
             $AllStocks{$stocks[$i]}{"NavellierAnalystEarningsRevisions"} =~ s/<\/td>.*//;
-            
+
             next;
         } elsif (/Cash Flow:/) {
             $AllStocks{$stocks[$i]}{"NavellierCashFlow"} = $NavellierRows[++$x];
             $AllStocks{$stocks[$i]}{"NavellierCashFlow"} =~ s/.*<td>//;
             $AllStocks{$stocks[$i]}{"NavellierCashFlow"} =~ s/<\/td>.*//;
-            
+
             next;
         } elsif (/Return on Equity:/) {
             $AllStocks{$stocks[$i]}{"NavellierReturnOnEquity"} = $NavellierRows[++$x];
             $AllStocks{$stocks[$i]}{"NavellierReturnOnEquity"} =~ s/.*<td>//;
             $AllStocks{$stocks[$i]}{"NavellierReturnOnEquity"} =~ s/<\/td>.*//;
-            
+
             next;
         } elsif (/Quantitative Grade:/) {
             $AllStocks{$stocks[$i]}{"NavellierQuantitativeGrade"} = $NavellierRows[++$x];
             $AllStocks{$stocks[$i]}{"NavellierQuantitativeGrade"} =~ s/.*<td>//;
             $AllStocks{$stocks[$i]}{"NavellierQuantitativeGrade"} =~ s/<\/td>.*//;
-            
+
             next;
         }
          elsif (/Total Grade:/) {
             $AllStocks{$stocks[$i]}{"NavellierTotalGrade"} = $NavellierRows[++$x];
             $AllStocks{$stocks[$i]}{"NavellierTotalGrade"} =~ s/.*<td>//;
             $AllStocks{$stocks[$i]}{"NavellierTotalGrade"} =~ s/<\/td>.*//;
-            
+
             next;
         }
     }
@@ -202,7 +205,7 @@ for (my $i=0; $i < @stocks; $i++){
             $AllStocks{$stocks[$i]}{"StockScout"} = $MsnMoneyRows[++$x];
             $AllStocks{$stocks[$i]}{"StockScout"} =~ s/^\s+|\s+$//g;
             last;
-        } 
+        }
     }
 
     my $Zacks = get("http://www.zacks.com/stock/quote/$stocks[$i]?q=$stocks[$i]") or die 'Unable to get zacks with stock '.$stocks[$i];
@@ -220,36 +223,18 @@ for (my $i=0; $i < @stocks; $i++){
             last;
         }
     }
-    
-    my $Fool = "";
-    if ($AllStocks{$stocks[$i]}{"StockExchange"} eq "NYSE") {
-        $Fool = get("http://www.fool.com/quote/nyse/$stocks[$i]") or $AllStocks{$stocks[$i]}{"FoolRating"} = "N/A";
-    } elsif ($AllStocks{$stocks[$i]}{"StockExchange"} eq "AMEX"){
-        $Fool = get("http://www.fool.com/quote/nysemkt/$stocks[$i]") or $AllStocks{$stocks[$i]}{"FoolRating"} = "N/A";
-    } elsif ($AllStocks{$stocks[$i]}{"StockExchange"} eq "NasdaqNM"){
-        $Fool = get("http://www.fool.com/quote/nasdaq/$stocks[$i]") or $AllStocks{$stocks[$i]}{"FoolRating"} = "N/A";
-    } else {
-        $AllStocks{$stocks[$i]}{"FoolRating"} = "N/A";
-    }
-    if ($AllStocks{$stocks[$i]}{"FoolRating"} ne "N/A") {
-        my @FoolRows = split("\n", $Fool);
-        foreach my $row (@FoolRows) {
-            if ($row =~ /stars-trans-lg.png" title="/) {
-                $AllStocks{$stocks[$i]}{"FoolRating"} = $row;
 
-                $AllStocks{$stocks[$i]}{"FoolRating"} =~ s/.*stars-trans-lg.png" title="//;
-                $AllStocks{$stocks[$i]}{"FoolRating"} =~ s/ .*//;
-
-                if ($AllStocks{$stocks[$i]}{"FoolRating"} =~ "Unrated") {
-                    $AllStocks{$stocks[$i]}{"FoolRating"} = "N/A";
-                }
-
-                if ($AllStocks{$stocks[$i]}{"FoolRating"} =~ /^\s*$/) {
-                    $AllStocks{$stocks[$i]}{"FoolRating"} =~ "N/A";
-                }
-
-                last;
+    my $Morningstar = get("http://quotes.morningstar.com/stock/$stocks[$i]/s?t=$stocks[$i]") or die 'Unable to get morningstar with stock '.$stocks[$i];
+    my @MorningstarRows = split("\n", $Morningstar);
+    foreach my $row (@MorningstarRows) {
+        if ($row =~ /r_star/) {
+            $AllStocks{$stocks[$i]}{"MorningstarRating"} = $row;
+            $AllStocks{$stocks[$i]}{"MorningstarRating"} =~ s/.*r_star//;
+            $AllStocks{$stocks[$i]}{"MorningstarRating"} =~ s/\'.*//;
+            if ($AllStocks{$stocks[$i]}{"MorningstarRating"} == 0) {
+              $AllStocks{$stocks[$i]}{"MorningstarRating"} = "";
             }
+            last;
         }
     }
 
@@ -279,7 +264,7 @@ for (my $i=0; $i < @stocks; $i++){
     $AllStocks{$stocks[$i]}{"ShortRatio"}.",".
     $AllStocks{$stocks[$i]}{"1yrTargetPrice"}.",".
     $AllStocks{$stocks[$i]}{"EPSEstCurrentYr"}.",".
-    $AllStocks{$stocks[$i]}{"EPSEstNextYear"}.",".    
+    $AllStocks{$stocks[$i]}{"EPSEstNextYear"}.",".
     $AllStocks{$stocks[$i]}{"EPSEstNextQuarter"}.",".
     $AllStocks{$stocks[$i]}{"PriceEPSEstCurrentYr"}.",".
     $AllStocks{$stocks[$i]}{"PriceEPSEstNextYr"}.",".
@@ -289,13 +274,13 @@ for (my $i=0; $i < @stocks; $i++){
     $AllStocks{$stocks[$i]}{"PriceSales"}.",".
     $AllStocks{$stocks[$i]}{"EBITDA"}.",".
     $AllStocks{$stocks[$i]}{"50DayMovingAvg"}.",".
-    $AllStocks{$stocks[$i]}{"200DayMovingAvg"}.",".    
+    $AllStocks{$stocks[$i]}{"200DayMovingAvg"}.",".
     $AllStocks{$stocks[$i]}{"MeanRecommendation"}.",".
     $AllStocks{$stocks[$i]}{"NoOfBrokers"}.",".
     $AllStocks{$stocks[$i]}{"TheStreetRating"}.",".
     $AllStocks{$stocks[$i]}{"NavellierFundamentalGrade"}.",".
     $AllStocks{$stocks[$i]}{"NavellierSalesGrowth"}.",".
-    $AllStocks{$stocks[$i]}{"NavellierOperatingMarginGrowth"}.",".      
+    $AllStocks{$stocks[$i]}{"NavellierOperatingMarginGrowth"}.",".
     $AllStocks{$stocks[$i]}{"NavellierEarningsGrowth"}.",".
     $AllStocks{$stocks[$i]}{"NavellierEarningsMomentum"}.",".
     $AllStocks{$stocks[$i]}{"NavellierEarningsSurprises"}.",".
@@ -307,8 +292,7 @@ for (my $i=0; $i < @stocks; $i++){
     $AllStocks{$stocks[$i]}{"StockScout"}.",".
     $AllStocks{$stocks[$i]}{"ZacksRating"}.",".
     $AllStocks{$stocks[$i]}{"NavellierRisk"}.",".
-    $AllStocks{$stocks[$i]}{"FoolRating"}."\n";
+    $AllStocks{$stocks[$i]}{"MorningstarRating"}."\n";
 }
 
 #print Dumper(\%AllStocks);
-
