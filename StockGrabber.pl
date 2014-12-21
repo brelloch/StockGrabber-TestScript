@@ -26,8 +26,8 @@ print "Symbol,CompanyName,LastPrice,LastTradeDate,LastTradeTime,Change,PercentCh
       "PEGRatio,BookValue,PriceBook,PriceSales,EBITDA,50DayMovingAvg,200DayMovingAvg,MeanRecommendation,NoOfBrokers,TheStreetRating,".
       "NavellierFundamentalGrade,NavellierSalesGrowth,NavellierOperatingMarginGrowth,NavellierEarningsGrowth,NavellierEarningsMomentum,".
       "NavellierEarningsSurprises,NavellierAnalystEarningsRevisions,NavellierCashFlow,NavellierReturnOnEquity,NavellierQuantitativeGrade,".
-      "NavellierTotalGrade,StockScout,ZacksRating,NavellierRisk,MorningstarRating\n";
-
+      "NavellierTotalGrade,ZacksRating,NavellierRisk,MorningstarRating,MorningstarFairValueEstimate,MorningstarUncertainty,".
+      "MorningstarConsiderBuy,MorningstarConsiderSell,MorningstarEconomicMoat,MorningstarCreditRating,MorningstarStewardshipRating\n";
 
 for (my $i=0; $i < @stocks; $i++){
     $AllStocks{$stocks[$i]}{"Symbol"} = $quotes[$i][0];
@@ -81,10 +81,17 @@ for (my $i=0; $i < @stocks; $i++){
     $AllStocks{$stocks[$i]}{"NavellierReturnOnEquity"} = "";
     $AllStocks{$stocks[$i]}{"NavellierQuantitativeGrade"} = "";
     $AllStocks{$stocks[$i]}{"NavellierTotalGrade"} = "";
-    $AllStocks{$stocks[$i]}{"StockScout"} = "";
     $AllStocks{$stocks[$i]}{"ZacksRating"} = "";
     $AllStocks{$stocks[$i]}{"NavellierRisk"} = "";
     $AllStocks{$stocks[$i]}{"MorningstarRating"} = "";
+    $AllStocks{$stocks[$i]}{"MorningstarFairValueEstimate"} = "";
+    $AllStocks{$stocks[$i]}{"MorningstarUncertainty"} = "";
+    $AllStocks{$stocks[$i]}{"MorningstarConsiderBuy"} = "";
+    $AllStocks{$stocks[$i]}{"MorningstarConsiderSell"} = "";
+    $AllStocks{$stocks[$i]}{"MorningstarEconomicMoat"} = "";
+    $AllStocks{$stocks[$i]}{"MorningstarCreditRating"} = "";
+    $AllStocks{$stocks[$i]}{"MorningstarStewardshipRating"} = "";
+
     my $YahooAnalyst = get("http://finance.yahoo.com/q/ao?s=$stocks[$i]+Analyst+Opinion") or die 'Unable to get page yahoo finance with stock '.$stocks[$i];
     my @YahooAnalystRows = split("\n", $YahooAnalyst);
     foreach my $row (@YahooAnalystRows) {
@@ -194,17 +201,6 @@ for (my $i=0; $i < @stocks; $i++){
         }
     }
 
-    my $MsnMoney = get("http://investing.money.msn.com/investments/stock-ratings/?symbol=$stocks[$i]") or die 'Unable to get msn money with stock '.$stocks[$i];
-    my @MsnMoneyRows = split("\n", $MsnMoney);
-    for (my $x = 0; $x <= $#MsnMoneyRows; ++$x) {
-        local $_ = $MsnMoneyRows[$x];
-        if (/class="rat"/) {
-            $AllStocks{$stocks[$i]}{"StockScout"} = $MsnMoneyRows[++$x];
-            $AllStocks{$stocks[$i]}{"StockScout"} =~ s/^\s+|\s+$//g;
-            last;
-        }
-    }
-
     my $Zacks = get("http://www.zacks.com/stock/quote/$stocks[$i]?q=$stocks[$i]") or die 'Unable to get zacks with stock '.$stocks[$i];
     my @ZacksRows = split("\n", $Zacks);
     foreach my $row (@ZacksRows) {
@@ -233,6 +229,59 @@ for (my $i=0; $i < @stocks; $i++){
             }
             last;
         }
+    }
+
+    my $MorningstarTake = get("http://analysisreport.morningstar.com/stock/research?t=$stocks[$i]&region=USA&culture=en-US&productcode=MLE") or die 'Unable to get morningstar with stock '.$stocks[$i];
+    @MorningstarRows = split("\n", $MorningstarTake);
+    my $MorningstarTakeUrl = "";
+    foreach my $row (@MorningstarRows) {
+      if ($row =~ /c-take/) {
+        $MorningstarTakeUrl = $row;
+        $MorningstarTakeUrl =~ s/.*analysisreport.morningstar.com//;
+        $MorningstarTakeUrl =~ s/".*//;
+        $MorningstarTakeUrl = "http://analysisreport.morningstar.com$MorningstarTakeUrl";
+        last;
+      }
+    }
+
+    if ($MorningstarTakeUrl ne "") {
+      $MorningstarTake = get($MorningstarTakeUrl) or die 'Unable to get morningstar with stock '.$stocks[$i];
+      @MorningstarRows = split("\n", $MorningstarTake);
+      $MorningstarTakeUrl = "";
+      for (my $x = 0; $x <= $#MorningstarRows; ++$x) {
+        if ($MorningstarRows[$x] =~ /^\s*Uncertainty/) {
+          $AllStocks{$stocks[$i]}{"MorningstarFairValueEstimate"} = "$MorningstarRows[$x+6]";
+          $AllStocks{$stocks[$i]}{"MorningstarFairValueEstimate"} =~ s/.*<td>//;
+          $AllStocks{$stocks[$i]}{"MorningstarFairValueEstimate"} =~ s/<span>.*//;
+          $AllStocks{$stocks[$i]}{"MorningstarUncertainty"} = "$MorningstarRows[$x+7]";
+          $AllStocks{$stocks[$i]}{"MorningstarUncertainty"} =~ s/.*<td>//;
+          $AllStocks{$stocks[$i]}{"MorningstarUncertainty"} =~ s/<\/td>.*//;
+        } elsif ($MorningstarRows[$x] =~ /^\s*Economic Moat/) {
+          $AllStocks{$stocks[$i]}{"MorningstarConsiderBuy"} = "$MorningstarRows[$x+4]";
+          $AllStocks{$stocks[$i]}{"MorningstarConsiderBuy"} =~ s/.*<td>//;
+          $AllStocks{$stocks[$i]}{"MorningstarConsiderBuy"} =~ s/<span>.*//;
+          $AllStocks{$stocks[$i]}{"MorningstarConsiderSell"} = "$MorningstarRows[$x+5]";
+          $AllStocks{$stocks[$i]}{"MorningstarConsiderSell"} =~ s/.*<td>//;
+          $AllStocks{$stocks[$i]}{"MorningstarConsiderSell"} =~ s/<span>.*//;
+          $AllStocks{$stocks[$i]}{"MorningstarEconomicMoat"} = "$MorningstarRows[$x+6]";
+          $AllStocks{$stocks[$i]}{"MorningstarEconomicMoat"} =~ s/.*<td>//;
+          $AllStocks{$stocks[$i]}{"MorningstarEconomicMoat"} =~ s/<\/td>.*//;
+        } elsif ($MorningstarRows[$x] =~ /id="creditStewardship"/) {
+          if ($MorningstarRows[$x+1] =~ /colspan="3"/) { # no credit rating provided
+            $AllStocks{$stocks[$i]}{"MorningstarCreditRating"} = "";
+            $AllStocks{$stocks[$i]}{"MorningstarStewardshipRating"} = "$MorningstarRows[$x+1]";
+            $AllStocks{$stocks[$i]}{"MorningstarStewardshipRating"} =~ s/.*colspan="3">//;
+            $AllStocks{$stocks[$i]}{"MorningstarStewardshipRating"} =~ s/<\/td>.*//;
+          } else {
+            $AllStocks{$stocks[$i]}{"MorningstarCreditRating"} = "$MorningstarRows[$x+1]";
+            $AllStocks{$stocks[$i]}{"MorningstarCreditRating"} =~ s/.*creditRatingCnt">//;
+            $AllStocks{$stocks[$i]}{"MorningstarCreditRating"} =~ s/<\/td>.*//;
+            $AllStocks{$stocks[$i]}{"MorningstarStewardshipRating"} = "$MorningstarRows[$x+3]";
+            $AllStocks{$stocks[$i]}{"MorningstarStewardshipRating"} =~ s/.*<td>//;
+            $AllStocks{$stocks[$i]}{"MorningstarStewardshipRating"} =~ s/<\/td>.*//;
+          }
+        }
+      }
     }
 
     print
@@ -286,10 +335,18 @@ for (my $i=0; $i < @stocks; $i++){
     $AllStocks{$stocks[$i]}{"NavellierReturnOnEquity"}.",".
     $AllStocks{$stocks[$i]}{"NavellierQuantitativeGrade"}.",".
     $AllStocks{$stocks[$i]}{"NavellierTotalGrade"}.",".
-    $AllStocks{$stocks[$i]}{"StockScout"}.",".
     $AllStocks{$stocks[$i]}{"ZacksRating"}.",".
     $AllStocks{$stocks[$i]}{"NavellierRisk"}.",".
-    $AllStocks{$stocks[$i]}{"MorningstarRating"}."\n";
+    $AllStocks{$stocks[$i]}{"MorningstarRating"}.",".
+    $AllStocks{$stocks[$i]}{"MorningstarFairValueEstimate"}.",".
+    $AllStocks{$stocks[$i]}{"MorningstarUncertainty"}.",".
+    $AllStocks{$stocks[$i]}{"MorningstarConsiderBuy"}.",".
+    $AllStocks{$stocks[$i]}{"MorningstarConsiderSell"}.",".
+    $AllStocks{$stocks[$i]}{"MorningstarEconomicMoat"}.",".
+    $AllStocks{$stocks[$i]}{"MorningstarCreditRating"}.",".
+    $AllStocks{$stocks[$i]}{"MorningstarStewardshipRating"}."\n";
+
+
 }
 
 #print Dumper(\%AllStocks);
