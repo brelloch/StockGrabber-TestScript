@@ -26,7 +26,7 @@ print "Symbol,CompanyName,LastPrice,LastTradeDate,LastTradeTime,Change,PercentCh
       "PEGRatio,BookValue,PriceBook,PriceSales,EBITDA,50DayMovingAvg,200DayMovingAvg,MeanRecommendation,NoOfBrokers,TheStreetRating,".
       "NavellierFundamentalGrade,NavellierSalesGrowth,NavellierOperatingMarginGrowth,NavellierEarningsGrowth,NavellierEarningsMomentum,".
       "NavellierEarningsSurprises,NavellierAnalystEarningsRevisions,NavellierCashFlow,NavellierReturnOnEquity,NavellierQuantitativeGrade,".
-      "NavellierTotalGrade,ZacksRating,NavellierRisk,MorningstarRating,MorningstarFairValueEstimate,MorningstarUncertainty,".
+      "NavellierTotalGrade,ZacksRating,StockSelectorRating,NavellierRisk,MorningstarRating,MorningstarFairValueEstimate,MorningstarUncertainty,".
       "MorningstarConsiderBuy,MorningstarConsiderSell,MorningstarEconomicMoat,MorningstarCreditRating,MorningstarStewardshipRating\n";
 
 for (my $i=0; $i < @stocks; $i++){
@@ -82,6 +82,7 @@ for (my $i=0; $i < @stocks; $i++){
     $AllStocks{$stocks[$i]}{"NavellierQuantitativeGrade"} = "";
     $AllStocks{$stocks[$i]}{"NavellierTotalGrade"} = "";
     $AllStocks{$stocks[$i]}{"ZacksRating"} = "";
+    $AllStocks{$stocks[$i]}{"StockSelectorRating"} = "";
     $AllStocks{$stocks[$i]}{"NavellierRisk"} = "";
     $AllStocks{$stocks[$i]}{"MorningstarRating"} = "";
     $AllStocks{$stocks[$i]}{"MorningstarFairValueEstimate"} = "";
@@ -217,6 +218,18 @@ for (my $i=0; $i < @stocks; $i++){
         }
     }
 
+        my $StockSelector = get("http://www.stockselector.com/ranking.asp?symbol=$stocks[$i]") or die 'Unable to get stockselector with stock '.$stocks[$i];
+    my @StockSelectorRows = split("\n", $StockSelector);
+    foreach my $row (@StockSelectorRows) {
+        if ($row =~ /overall rank of/) {
+            $AllStocks{$stocks[$i]}{"StockSelectorRating"} = $row;
+            $AllStocks{$stocks[$i]}{"StockSelectorRating"} =~ s/.*overall rank of <b>//;
+            $AllStocks{$stocks[$i]}{"StockSelectorRating"} =~ s/\ out.*//;
+            
+            last;
+        }
+    }
+    
     my $Morningstar = get("http://quotes.morningstar.com/stock/$stocks[$i]/s?t=$stocks[$i]") or die 'Unable to get morningstar with stock '.$stocks[$i];
     my @MorningstarRows = split("\n", $Morningstar);
     foreach my $row (@MorningstarRows) {
@@ -336,6 +349,7 @@ for (my $i=0; $i < @stocks; $i++){
     $AllStocks{$stocks[$i]}{"NavellierQuantitativeGrade"}.",".
     $AllStocks{$stocks[$i]}{"NavellierTotalGrade"}.",".
     $AllStocks{$stocks[$i]}{"ZacksRating"}.",".
+    $AllStocks{$stocks[$i]}{"StockSelectorRating"}.",".
     $AllStocks{$stocks[$i]}{"NavellierRisk"}.",".
     $AllStocks{$stocks[$i]}{"MorningstarRating"}.",".
     $AllStocks{$stocks[$i]}{"MorningstarFairValueEstimate"}.",".
