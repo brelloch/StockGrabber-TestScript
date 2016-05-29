@@ -4,6 +4,7 @@ use strict;
 use LWP::Simple;
 use Finance::YahooQuote;
 use Data::Dumper;
+use LWP::UserAgent;
 
 $Finance::YahooQuote::TIMEOUT = 60;
 useExtendedQueryFormat();
@@ -110,8 +111,13 @@ for (my $i=0; $i < @stocks; $i++){
         }
     }
 
-    my $TheStreet = get("http://www.thestreet.com/quote/$stocks[$i]/details/analyst-ratings.html") or die 'Unable to get page thestreet with stock '.$stocks[$i];
-    my @TheStreetRows = split("\n", $TheStreet);
+
+    my $ua = LWP::UserAgent->new();
+    my $req = new HTTP::Request GET => 'https://www.thestreet.com/quote/$stocks[$i]/details/analyst-ratings.html';
+    my $res = $ua->request($req) or die 'Unable to get page thestreet with stock '.$stocks[$i];;
+    my $content = $res->content;
+
+    my @TheStreetRows = split("\n", $res->content);
     foreach my $row (@TheStreetRows) {
         if ($row =~ /"LetterGradeRating":"/) {
             $AllStocks{$stocks[$i]}{"TheStreetRating"} = $row;
@@ -204,32 +210,30 @@ for (my $i=0; $i < @stocks; $i++){
 
     my $Zacks = get("http://www.zacks.com/stock/quote/$stocks[$i]?q=$stocks[$i]") or die 'Unable to get zacks with stock '.$stocks[$i];
     my @ZacksRows = split("\n", $Zacks);
-    foreach my $row (@ZacksRows) {
-        if ($row =~ /<p>Zacks Rank : /) {
-            $AllStocks{$stocks[$i]}{"ZacksRating"} = $row;
+    for (my $x = 0; $x <= $#ZacksRows; ++$x) {
+        if ($ZacksRows[$x] =~ /class="rank_container_right"/) {
 
-            $AllStocks{$stocks[$i]}{"ZacksRating"} =~ s/.*<p>Zacks Rank : //;
+            $AllStocks{$stocks[$i]}{"ZacksRating"} = $ZacksRows[$x+2];
+            $AllStocks{$stocks[$i]}{"ZacksRating"} =~ s/^\s*//;
             $AllStocks{$stocks[$i]}{"ZacksRating"} =~ s/-.*//;
-
-            # Handle NA
             $AllStocks{$stocks[$i]}{"ZacksRating"} =~ s/ .*//;
 
             last;
         }
     }
 
-        my $StockSelector = get("http://www.stockselector.com/ranking.asp?symbol=$stocks[$i]") or die 'Unable to get stockselector with stock '.$stocks[$i];
+    my $StockSelector = get("http://www.stockselector.com/ranking.asp?symbol=$stocks[$i]") or die 'Unable to get stockselector with stock '.$stocks[$i];
     my @StockSelectorRows = split("\n", $StockSelector);
     foreach my $row (@StockSelectorRows) {
         if ($row =~ /overall rank of/) {
             $AllStocks{$stocks[$i]}{"StockSelectorRating"} = $row;
             $AllStocks{$stocks[$i]}{"StockSelectorRating"} =~ s/.*overall rank of <b>//;
             $AllStocks{$stocks[$i]}{"StockSelectorRating"} =~ s/\ out.*//;
-            
+
             last;
         }
     }
-    
+
     my $Morningstar = get("http://quotes.morningstar.com/stock/$stocks[$i]/s?t=$stocks[$i]") or die 'Unable to get morningstar with stock '.$stocks[$i];
     my @MorningstarRows = split("\n", $Morningstar);
     foreach my $row (@MorningstarRows) {
