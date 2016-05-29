@@ -5,6 +5,7 @@ use LWP::Simple;
 use Finance::YahooQuote;
 use Data::Dumper;
 use LWP::UserAgent;
+use HTTP::Cookies;
 
 $Finance::YahooQuote::TIMEOUT = 60;
 useExtendedQueryFormat();
@@ -112,18 +113,14 @@ for (my $i=0; $i < @stocks; $i++){
     }
 
 
-    my $ua = LWP::UserAgent->new();
-    my $req = new HTTP::Request GET => 'https://www.thestreet.com/quote/$stocks[$i]/details/analyst-ratings.html';
-    my $res = $ua->request($req) or die 'Unable to get page thestreet with stock '.$stocks[$i];;
-    my $content = $res->content;
+    my $streetResult = `wget -qO- https://www.thestreet.com/quote/$stocks[$i]/details/analyst-ratings.html`;
 
-    my @TheStreetRows = split("\n", $res->content);
+    my @TheStreetRows = split("\n", $streetResult);
     foreach my $row (@TheStreetRows) {
-        if ($row =~ /"LetterGradeRating":"/) {
+        if ($row =~ /quote-nav-rating-qr-rating/) {
             $AllStocks{$stocks[$i]}{"TheStreetRating"} = $row;
-
-            $AllStocks{$stocks[$i]}{"TheStreetRating"} =~ s/.*LetterGradeRating":"//;
-            $AllStocks{$stocks[$i]}{"TheStreetRating"} =~ s/"}]}.*//;
+            $AllStocks{$stocks[$i]}{"TheStreetRating"} =~ s/.*<span class="quote-nav-rating-qr-rating \S+">//;
+            $AllStocks{$stocks[$i]}{"TheStreetRating"} =~ s/<sub>.*//;
 
             last;
         }
