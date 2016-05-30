@@ -113,9 +113,14 @@ for (my $i=0; $i < @stocks; $i++){
     }
 
 
-    my $streetResult = `wget -qO- https://www.thestreet.com/quote/$stocks[$i]/details/analyst-ratings.html`;
+    my $ua = LWP::UserAgent->new();
+    $ua->agent("Mozilla/8.0");
 
-    my @TheStreetRows = split("\n", $streetResult);
+    my $req = new HTTP::Request GET => 'https://www.thestreet.com/quote/'.$stocks[$i].'/details/analyst-ratings.html';
+    my $res = $ua->request($req) or die 'Unable to get page thestreet with stock '.$stocks[$i];;
+    my $content = $res->content;
+
+    my @TheStreetRows = split("\n", $res->content);
     foreach my $row (@TheStreetRows) {
         if ($row =~ /quote-nav-rating-qr-rating/) {
             $AllStocks{$stocks[$i]}{"TheStreetRating"} = $row;
