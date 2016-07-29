@@ -6,6 +6,7 @@ use Finance::YahooQuote;
 use Data::Dumper;
 use LWP::UserAgent;
 use HTTP::Cookies;
+use JSON qw( decode_json );
 
 $Finance::YahooQuote::TIMEOUT = 60;
 useExtendedQueryFormat();
@@ -15,7 +16,7 @@ my @stocks = ("AFSI", "AKRX", "AMG", "AOS", "BA", "BBSI", "BCOR", "BEAV", "BWLD"
               "MEOH", "MGA", "MIDD", "MKTX", "NKE", "PCP", "PII", "PKG", "PRAA", "PRGO", "RNET", "SAVE",
               "SBNY", "SBUX", "SHPG", "SIVB", "SNTS", "SSNC", "STN", "TRN", "UHAL", "WNS","CVR","ESTE",
               "ESYS","EVI","EVK","HEIA","LCI","MHH","NOG","SFBC","STZB","TIS","UIHC","WTT");
-
+              
 #Grab most of the yahoo finance using api
 my @quotes = getquote @stocks;
 
@@ -95,22 +96,10 @@ for (my $i=0; $i < @stocks; $i++){
     $AllStocks{$stocks[$i]}{"MorningstarCreditRating"} = "";
     $AllStocks{$stocks[$i]}{"MorningstarStewardshipRating"} = "";
 
-    my $YahooAnalyst = get("http://finance.yahoo.com/q/ao?s=$stocks[$i]+Analyst+Opinion") or die 'Unable to get page yahoo finance with stock '.$stocks[$i];
-    my @YahooAnalystRows = split("\n", $YahooAnalyst);
-    foreach my $row (@YahooAnalystRows) {
-        if ($row =~ /Mean Recommendation \(this week\):<\/td><td class="yfnc_tabledata1">/) {
-            $AllStocks{$stocks[$i]}{"MeanRecommendation"} = $row;
-            $AllStocks{$stocks[$i]}{"NoOfBrokers"} = $row;
-
-            $AllStocks{$stocks[$i]}{"MeanRecommendation"} =~ s/.*Mean Recommendation \(this week\):<\/td><td class="yfnc_tabledata1">//;
-            $AllStocks{$stocks[$i]}{"MeanRecommendation"} =~ s/<\/td>.*//;
-
-            $AllStocks{$stocks[$i]}{"NoOfBrokers"} =~ s/.*No\. of Brokers:<\/td><td class="yfnc_tabledata1">//;
-            $AllStocks{$stocks[$i]}{"NoOfBrokers"} =~ s/<\/td>.*//;
-
-            last;
-        }
-    }
+    my $YahooAnalystJson = get("https://query2.finance.yahoo.com/v10/finance/quoteSummary/$stocks[$i]?formatted=true&crumb=8pdH9baSHsw&lang=en-US&region=US&modules=upgradeDowngradeHistory%2CrecommendationTrend%2CfinancialData%2CearningsHistory%2CearningsTrend%2CindustryTrend&corsDomain=finance.yahoo.com") or die 'Unable to get page yahoo finance with stock '.$stocks[$i];
+    my $YahooAnalystObject = decode_json($YahooAnalystJson);
+    $AllStocks{$stocks[$i]}{"MeanRecommendation"} = $YahooAnalystObject->{'quoteSummary'}{'result'}[0]{'financialData'}{'recommendationMean'}{'raw'};
+    $AllStocks{$stocks[$i]}{"NoOfBrokers"} = $YahooAnalystObject->{'quoteSummary'}{'result'}[0]{'financialData'}{'numberOfAnalystOpinions'}{'raw'};;
 
 
     my $ua = LWP::UserAgent->new();
