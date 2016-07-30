@@ -16,10 +16,16 @@ my @stocks = ("AFSI", "AKRX", "AMG", "AOS", "BA", "BBSI", "BCOR", "BEAV", "BWLD"
               "MEOH", "MGA", "MIDD", "MKTX", "NKE", "PCP", "PII", "PKG", "PRAA", "PRGO", "RNET", "SAVE",
               "SBNY", "SBUX", "SHPG", "SIVB", "SNTS", "SSNC", "STN", "TRN", "UHAL", "WNS","CVR","ESTE",
               "ESYS","EVI","EVK","HEIA","LCI","MHH","NOG","SFBC","STZB","TIS","UIHC","WTT");
-              
+
 #Grab most of the yahoo finance using api
 my @quotes = getquote @stocks;
 
+my $Zacks;
+my $StockSelector;
+my $Morningstar;
+my $MorningstarTake;
+my $Navellier;
+my $YahooAnalystJson;
 my %AllStocks;
 my $i = 0;
 
@@ -96,11 +102,12 @@ for (my $i=0; $i < @stocks; $i++){
     $AllStocks{$stocks[$i]}{"MorningstarCreditRating"} = "";
     $AllStocks{$stocks[$i]}{"MorningstarStewardshipRating"} = "";
 
-    my $YahooAnalystJson = get("https://query2.finance.yahoo.com/v10/finance/quoteSummary/$stocks[$i]?formatted=true&crumb=8pdH9baSHsw&lang=en-US&region=US&modules=upgradeDowngradeHistory%2CrecommendationTrend%2CfinancialData%2CearningsHistory%2CearningsTrend%2CindustryTrend&corsDomain=finance.yahoo.com") or die 'Unable to get page yahoo finance with stock '.$stocks[$i];
-    my $YahooAnalystObject = decode_json($YahooAnalystJson);
-    $AllStocks{$stocks[$i]}{"MeanRecommendation"} = $YahooAnalystObject->{'quoteSummary'}{'result'}[0]{'financialData'}{'recommendationMean'}{'raw'};
-    $AllStocks{$stocks[$i]}{"NoOfBrokers"} = $YahooAnalystObject->{'quoteSummary'}{'result'}[0]{'financialData'}{'numberOfAnalystOpinions'}{'raw'};;
-
+    $YahooAnalystJson = get("https://query2.finance.yahoo.com/v10/finance/quoteSummary/$stocks[$i]?formatted=true&crumb=8pdH9baSHsw&lang=en-US&region=US&modules=upgradeDowngradeHistory%2CrecommendationTrend%2CfinancialData%2CearningsHistory%2CearningsTrend%2CindustryTrend&corsDomain=finance.yahoo.com") or $YahooAnalystJson = "";
+    if ($YahooAnalystJson ne "") {
+        my $YahooAnalystObject = decode_json($YahooAnalystJson);
+        $AllStocks{$stocks[$i]}{"MeanRecommendation"} = $YahooAnalystObject->{'quoteSummary'}{'result'}[0]{'financialData'}{'recommendationMean'}{'raw'};
+        $AllStocks{$stocks[$i]}{"NoOfBrokers"} = $YahooAnalystObject->{'quoteSummary'}{'result'}[0]{'financialData'}{'numberOfAnalystOpinions'}{'raw'};;
+    }
 
     my $ua = LWP::UserAgent->new();
     $ua->agent("Mozilla/8.0");
@@ -120,7 +127,7 @@ for (my $i=0; $i < @stocks; $i++){
         }
     }
 
-    my $Navellier = get("http://navelliergrowth.investorplace.com/portfolio-grader/stock-report.html?t=$stocks[$i]") or die 'Unable to get navellier with stock '.$stocks[$i];
+    $Navellier = get("http://navelliergrowth.investorplace.com/portfolio-grader/stock-report.html?t=$stocks[$i]") or $Navellier = "";
     my @NavellierRows = split("\n", $Navellier);
 
     for (my $x = 0; $x <= $#NavellierRows; ++$x) {
@@ -199,7 +206,7 @@ for (my $i=0; $i < @stocks; $i++){
         }
     }
 
-    my $Zacks = get("http://www.zacks.com/stock/quote/$stocks[$i]?q=$stocks[$i]") or die 'Unable to get zacks with stock '.$stocks[$i];
+    $Zacks = get("http://www.zacks.com/stock/quote/$stocks[$i]?q=$stocks[$i]") or $Zacks = "";
     my @ZacksRows = split("\n", $Zacks);
     for (my $x = 0; $x <= $#ZacksRows; ++$x) {
         if ($ZacksRows[$x] =~ /class="rank_container_right"/) {
@@ -213,7 +220,7 @@ for (my $i=0; $i < @stocks; $i++){
         }
     }
 
-    my $StockSelector = get("http://www.stockselector.com/ranking.asp?symbol=$stocks[$i]") or die 'Unable to get stockselector with stock '.$stocks[$i];
+    $StockSelector = get("http://www.stockselector.com/ranking.asp?symbol=$stocks[$i]") or $StockSelector = "";
     my @StockSelectorRows = split("\n", $StockSelector);
     foreach my $row (@StockSelectorRows) {
         if ($row =~ /overall rank of/) {
@@ -225,7 +232,7 @@ for (my $i=0; $i < @stocks; $i++){
         }
     }
 
-    my $Morningstar = get("http://quotes.morningstar.com/stock/$stocks[$i]/s?t=$stocks[$i]") or die 'Unable to get morningstar with stock '.$stocks[$i];
+    $Morningstar = get("http://quotes.morningstar.com/stock/$stocks[$i]/s?t=$stocks[$i]") or $Morningstar = "";
     my @MorningstarRows = split("\n", $Morningstar);
     foreach my $row (@MorningstarRows) {
         if ($row =~ /r_star/) {
@@ -239,7 +246,7 @@ for (my $i=0; $i < @stocks; $i++){
         }
     }
 
-    my $MorningstarTake = get("http://analysisreport.morningstar.com/stock/research?t=$stocks[$i]&region=USA&culture=en-US&productcode=MLE") or die 'Unable to get morningstar with stock '.$stocks[$i];
+    $MorningstarTake = get("http://analysisreport.morningstar.com/stock/research?t=$stocks[$i]&region=USA&culture=en-US&productcode=MLE") or $MorningstarTake = "";
     @MorningstarRows = split("\n", $MorningstarTake);
     my $MorningstarTakeUrl = "";
     foreach my $row (@MorningstarRows) {
@@ -253,7 +260,7 @@ for (my $i=0; $i < @stocks; $i++){
     }
 
     if ($MorningstarTakeUrl ne "") {
-      $MorningstarTake = get($MorningstarTakeUrl) or die 'Unable to get morningstar with stock '.$stocks[$i];
+      $MorningstarTake = get($MorningstarTakeUrl) or $MorningstarTake = "";
       @MorningstarRows = split("\n", $MorningstarTake);
       $MorningstarTakeUrl = "";
       for (my $x = 0; $x <= $#MorningstarRows; ++$x) {
