@@ -11,11 +11,7 @@ use JSON qw( decode_json );
 $Finance::YahooQuote::TIMEOUT = 60;
 useExtendedQueryFormat();
 
-my @stocks = ("AFSI", "AKRX", "AMG", "AOS", "BA", "BBSI", "BCOR", "BEAV", "BWLD", "CLB", "CTSH", "EEFT",
-              "EFII", "GILD", "HURN", "HXL", "IGTE", "JAZZ", "KS", "LFUS", "LOPE", "LVS", "MA", "MCK",
-              "MEOH", "MGA", "MIDD", "MKTX", "NKE", "PCP", "PII", "PKG", "PRAA", "PRGO", "RNET", "SAVE",
-              "SBNY", "SBUX", "SHPG", "SIVB", "SNTS", "SSNC", "STN", "TRN", "UHAL", "WNS","CVR","ESTE",
-              "ESYS","EVI","EVK","HEIA","LCI","MHH","NOG","SFBC","STZB","TIS","UIHC","WTT");
+my @stocks = ("AFSI","AGN","AMZN","ATVI","AVGO","AWK","AYI","AZO","CELG","CLX","CMS","COST","CVS","DAL","DLR","DPS","DRI","DY","EA","EFX","EW","EXR","FB","FISV","FL","FLT","HD","HRL","INGR","JBLU","KR","LMT","LOW","MO","NDAQ","NKE","NOC","NTES","NVDA","ORLY","PANW","PSA","RAI","RYAAY","SBUX","SJM","STZ","T","TDG","TMO","TSS","ULTA","UNH","V","VMC","VNTV","VRSN");
 
 #Grab most of the yahoo finance using api
 my @quotes = getquote @stocks;

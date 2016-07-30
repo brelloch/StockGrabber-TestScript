@@ -2,14 +2,16 @@
 use warnings;
 use strict;
 use LWP::Simple;
-use diagnostics;
 use Finance::YahooQuote;
 use Data::Dumper;
+use LWP::UserAgent;
+use HTTP::Cookies;
+use JSON qw( decode_json );
 
 $Finance::YahooQuote::TIMEOUT = 60;
 useExtendedQueryFormat();
 
-my @stocks = ("AFSI","AGN","ALK","AMZN","AVGO","AWK","AYI","AZO","CELG","CI","CLX","COST","CVS","DAL","DLR","DPS","DRI","DY","EA","EFX","EW","EXR","FB","FISV","FL","FLT","HD","HRL","JBLU","KR","LMT","LOW","MO","NDAQ","NKE","NOC","NTES","NVDA","ORLY","PANW","PSA","RAI","RYAAY","SBUX","STZ","T","TDG","TMO","TSS","UA","ULTA","UNH","VMC","VNTV","VRSN");
+my @stocks = ("AFSI","AGN","AMZN","ATVI","AVGO","AWK","AYI","AZO","CELG","CLX","CMS","COST","CVS","DAL","DLR","DPS","DRI","DY","EA","EFX","EW","EXR","FB","FISV","FL","FLT","HD","HRL","INGR","JBLU","KR","LMT","LOW","MO","NDAQ","NKE","NOC","NTES","NVDA","ORLY","PANW","PSA","RAI","RYAAY","SBUX","SJM","STZ","T","TDG","TMO","TSS","ULTA","UNH","V","VMC","VNTV","VRSN");
 
 #Grab most of the yahoo finance using api
 my @quotes = getquote @stocks;
@@ -92,6 +94,11 @@ for (my $i=0; $i < @stocks; $i++){
     $AllStocks{$stocks[$i]}{"MorningstarStewardshipRating"} = "";
     $AllStocks{$stocks[$i]}{"NavellierRisk"} = "";
 
+    my $YahooAnalystJson = get("https://query2.finance.yahoo.com/v10/finance/quoteSummary/$stocks[$i]?formatted=true&crumb=8pdH9baSHsw&lang=en-US&region=US&modules=upgradeDowngradeHistory%2CrecommendationTrend%2CfinancialData%2CearningsHistory%2CearningsTrend%2CindustryTrend&corsDomain=finance.yahoo.com") or die 'Unable to get page yahoo finance with stock '.$stocks[$i];
+    my $YahooAnalystObject = decode_json($YahooAnalystJson);
+    $AllStocks{$stocks[$i]}{"MeanRecommendation"} = $YahooAnalystObject->{'quoteSummary'}{'result'}[0]{'financialData'}{'recommendationMean'}{'raw'};
+    $AllStocks{$stocks[$i]}{"NoOfBrokers"} = $YahooAnalystObject->{'quoteSummary'}{'result'}[0]{'financialData'}{'numberOfAnalystOpinions'}{'raw'};;
+
     my $ua = LWP::UserAgent->new();
     $ua->agent("Mozilla/8.0");
 
@@ -105,23 +112,6 @@ for (my $i=0; $i < @stocks; $i++){
             $AllStocks{$stocks[$i]}{"TheStreetRating"} = $row;
             $AllStocks{$stocks[$i]}{"TheStreetRating"} =~ s/.*<span class="quote-nav-rating-qr-rating \S+">//;
             $AllStocks{$stocks[$i]}{"TheStreetRating"} =~ s/<sub>.*//;
-
-            last;
-        }
-    }
-
-    my $YahooAnalyst = get("http://finance.yahoo.com/q/ao?s=$stocks[$i]&ql=1") or die 'Unable to get page yahoo finance with stock '.$stocks[$i];
-    my @YahooAnalystRows = split("\n", $YahooAnalyst);
-    foreach my $row (@YahooAnalystRows) {
-        if ($row =~ /Mean Recommendation \(this week\):<\/td><td class="yfnc_tabledata1">/) {
-            $AllStocks{$stocks[$i]}{"MeanRecommendation"} = $row;
-            $AllStocks{$stocks[$i]}{"NoOfBrokers"} = $row;
-
-            $AllStocks{$stocks[$i]}{"MeanRecommendation"} =~ s/.*Mean Recommendation \(this week\):<\/td><td class="yfnc_tabledata1">//;
-            $AllStocks{$stocks[$i]}{"MeanRecommendation"} =~ s/<\/td>.*//;
-
-            $AllStocks{$stocks[$i]}{"NoOfBrokers"} =~ s/.*No\. of Brokers:<\/td><td class="yfnc_tabledata1">//;
-            $AllStocks{$stocks[$i]}{"NoOfBrokers"} =~ s/<\/td>.*//;
 
             last;
         }

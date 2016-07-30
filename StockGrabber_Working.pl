@@ -2,21 +2,21 @@
 use warnings;
 use strict;
 use LWP::Simple;
+use diagnostics;
 use Finance::YahooQuote;
 use Data::Dumper;
-use diagnostics;
 
 $Finance::YahooQuote::TIMEOUT = 60;
 useExtendedQueryFormat();
 
-my @stocks = ("AFSI","AGN","ALK","AMZN","AVGO","AWK","AYI","AZO","CELG","CI","CLX","COST","CVS","DAL","DLR","DPS","DRI","DY","EA","EFX","EW","EXR","FB","FISV","FL","FLT","HD","HRL","JBLU","KR","LMT","LOW","MO","NDAQ","NKE","NOC","NTES","NVDA","ORLY","PANW","PSA","RAI","RYAAY","SBUX","STZ","T","TDG","TMO","TSS","UA","ULTA","UNH","VMC","VNTV","VRSN");
+my @stocks = ("AFSI","AGN","AMZN","ATVI","AVGO","AWK","AYI","AZO","CELG","CLX","CMS","COST","CVS","DAL","DLR","DPS","DRI","DY","EA","EFX","EW","EXR","FB","FISV","FL","FLT","HD","HRL","INGR","JBLU","KR","LMT","LOW","MO","NDAQ","NKE","NOC","NTES","NVDA","ORLY","PANW","PSA","RAI","RYAAY","SBUX","SJM","STZ","T","TDG","TMO","TSS","ULTA","UNH","V","VMC","VNTV","VRSN");
 
 #Grab most of the yahoo finance using api
 my @quotes = getquote @stocks;
 
 my %AllStocks;
 my $i = 0;
-
+    
 print "Symbol,CompanyName,LastPrice,LastTradeDate,LastTradeTime,Change,PercentChange,Volume,AverageDailyVol,Bid,Ask,PreviousClose,".
       "TodaysOpen,DaysRange,52WeekRange,EarningsPerShare,PERatio,DividendPayDate,DividendPerShare,DividendYield,MarketCapitalization,".
       "StockExchange,ShortRatio,1yrTargetPrice,EPSEstCurrentYr,EPSEstNextYear,EPSEstNextQuarter,PriceEPSEstCurrentYr,PriceEPSEstNextYr,".
@@ -92,19 +92,25 @@ for (my $i=0; $i < @stocks; $i++){
     $AllStocks{$stocks[$i]}{"MorningstarStewardshipRating"} = "";
     $AllStocks{$stocks[$i]}{"NavellierRisk"} = "";
 
-    my $TheStreet = get("http://www.thestreet.com/quote/$stocks[$i]/details/analyst-ratings.html") or die 'Unable to get page thestreet with stock '.$stocks[$i];
-    my @TheStreetRows = split("\n", $TheStreet);
+    my $ua = LWP::UserAgent->new();
+    $ua->agent("Mozilla/8.0");
+
+    my $req = new HTTP::Request GET => 'https://www.thestreet.com/quote/'.$stocks[$i].'/details/analyst-ratings.html';
+    my $res = $ua->request($req) or die 'Unable to get page thestreet with stock '.$stocks[$i];;
+    my $content = $res->content;
+
+    my @TheStreetRows = split("\n", $res->content);
     foreach my $row (@TheStreetRows) {
-        if ($row =~ /"quote__rating__letter-grade":"/) {
+        if ($row =~ /quote-nav-rating-qr-rating/) {
             $AllStocks{$stocks[$i]}{"TheStreetRating"} = $row;
-            $AllStocks{$stocks[$i]}{"TheStreetRating"} =~ s/.*quote__rating__letter-grade":"//;
-            $AllStocks{$stocks[$i]}{"TheStreetRating"} =~ s/"}]}.*//;
+            $AllStocks{$stocks[$i]}{"TheStreetRating"} =~ s/.*<span class="quote-nav-rating-qr-rating \S+">//;
+            $AllStocks{$stocks[$i]}{"TheStreetRating"} =~ s/<sub>.*//;
 
             last;
         }
     }
 
-    my $YahooAnalyst = get("http://finance.yahoo.com/q/ao?s=$stocks[$i]+Analyst+Opinion") or die 'Unable to get page yahoo finance with stock '.$stocks[$i];
+    my $YahooAnalyst = get("http://finance.yahoo.com/q/ao?s=$stocks[$i]&ql=1") or die 'Unable to get page yahoo finance with stock '.$stocks[$i];
     my @YahooAnalystRows = split("\n", $YahooAnalyst);
     foreach my $row (@YahooAnalystRows) {
         if ($row =~ /Mean Recommendation \(this week\):<\/td><td class="yfnc_tabledata1">/) {
@@ -202,14 +208,12 @@ for (my $i=0; $i < @stocks; $i++){
 
     my $Zacks = get("http://www.zacks.com/stock/quote/$stocks[$i]?q=$stocks[$i]") or die 'Unable to get zacks with stock '.$stocks[$i];
     my @ZacksRows = split("\n", $Zacks);
-    foreach my $row (@ZacksRows) {
-        if ($row =~ /<p>Zacks Rank : /) {
-            $AllStocks{$stocks[$i]}{"ZacksRating"} = $row;
+    for (my $x = 0; $x <= $#ZacksRows; ++$x) {
+        if ($ZacksRows[$x] =~ /class="rank_container_right"/) {
 
-            $AllStocks{$stocks[$i]}{"ZacksRating"} =~ s/.*<p>Zacks Rank : //;
+            $AllStocks{$stocks[$i]}{"ZacksRating"} = $ZacksRows[$x+2];
+            $AllStocks{$stocks[$i]}{"ZacksRating"} =~ s/^\s*//;
             $AllStocks{$stocks[$i]}{"ZacksRating"} =~ s/-.*//;
-
-            # Handle NA
             $AllStocks{$stocks[$i]}{"ZacksRating"} =~ s/ .*//;
 
             last;
@@ -246,6 +250,7 @@ for (my $i=0; $i < @stocks; $i++){
             last;
         }
     }
+
     
     my $Morningstar = get("http://quotes.morningstar.com/stock/$stocks[$i]/s?t=$stocks[$i]") or die 'Unable to get morningstar with stock '.$stocks[$i];
     my @MorningstarRows = split("\n", $Morningstar);
