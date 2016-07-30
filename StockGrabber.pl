@@ -247,7 +247,7 @@ for (my $i=0; $i < @stocks; $i++){
             last;
         }
     }
-    
+
     $Morningstar = get("http://quotes.morningstar.com/stock/$stocks[$i]/s?t=$stocks[$i]") or $Morningstar = "";
     my @MorningstarRows = split("\n", $Morningstar);
     foreach my $row (@MorningstarRows) {
@@ -255,7 +255,7 @@ for (my $i=0; $i < @stocks; $i++){
             $AllStocks{$stocks[$i]}{"MorningstarRating"} = $row;
             $AllStocks{$stocks[$i]}{"MorningstarRating"} =~ s/.*starRating"://;
             $AllStocks{$stocks[$i]}{"MorningstarRating"} =~ s/\,"an.*//;
-            if ($AllStocks{$stocks[$i]}{"MorningstarRating"} == 0) {
+            if ($AllStocks{$stocks[$i]}{"MorningstarRating"} eq "null") {
               $AllStocks{$stocks[$i]}{"MorningstarRating"} = "";
             }
             last;
@@ -362,7 +362,7 @@ for (my $i=0; $i < @stocks; $i++){
     $AllStocks{$stocks[$i]}{"StockSelectorGain"}.",".
     $AllStocks{$stocks[$i]}{"StockSelectorComfort"}.",".
     $AllStocks{$stocks[$i]}{"MorningstarRating"}.",".
-    $AllStocks{$stocks[$i]}{"MorningstarUncertainty"}.",".    
+    $AllStocks{$stocks[$i]}{"MorningstarUncertainty"}.",".
     $AllStocks{$stocks[$i]}{"MorningstarFairValueEstimate"}.",".
     $AllStocks{$stocks[$i]}{"MorningstarConsiderBuy"}.",".
     $AllStocks{$stocks[$i]}{"MorningstarConsiderSell"}.",".
