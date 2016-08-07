@@ -11,7 +11,7 @@ use JSON qw( decode_json );
 $Finance::YahooQuote::TIMEOUT = 60;
 useExtendedQueryFormat();
 
-my @stocks = ("AFSI","AGN","AMZN","ATVI","AVGO");
+my @stocks = ("AFSI","AGN","AMZN","ATVI","AVGO","AWK","AYI","AZO","CELG","CLX","CMS","COST","CVS","DAL","DLR","DPS","DRI","DY","EA","EFX","EW","EXR","FB","FISV","FL","FLT","HD","HRL","INGR","JBLU","KR","LMT","LOW","MO","NDAQ","NKE","NOC","NTES","NVDA","ORLY","PANW","PSA","RAI","RYAAY","SBUX","SJM","STZ","T","TDG","TMO","TSS","ULTA","UNH","V","VMC","VNTV","VRSN");
 
 #Grab most of the yahoo finance using api
 my @quotes = getquote @stocks;
@@ -32,8 +32,8 @@ print "Symbol,CompanyName,LastPrice,LastTradeDate,LastTradeTime,Change,PercentCh
       "PEGRatio,BookValue,PriceBook,PriceSales,EBITDA,50DayMovingAvg,200DayMovingAvg,TheStreetRating,MeanRecommendation,NoOfBrokers,".
       "NavellierTotalGrade,NavellierQuantitativeGrade,NavellierFundamentalGrade,NavellierSalesGrowth,NavellierOperatingMarginGrowth,NavellierEarningsGrowth,".
       "NavellierEarningsMomentum,NavellierEarningsSurprises,NavellierAnalystEarningsRevisions,NavellierCashFlow,NavellierReturnOnEquity,".
-      "ZacksRating,StockSelectorRating,StockSelectorValuation,StockSelectorGain,StockSelectorComfort,MorningstarRating,MorningstarUncertainty,MorningstarFairValueEstimate,".
-      "MorningstarConsiderBuy,MorningstarConsiderSell,MorningstarEconomicMoat,MorningstarStewardshipRating,NavellierRisk\n";
+      "ZacksRating,ZacksValue,ZacksGrowth,ZacksMomentum,ZacksVGN,StockSelectorRating,StockSelectorValuation,StockSelectorGain,StockSelectorComfort,".
+      "MorningstarRating,MorningstarUncertainty,MorningstarFairValueEstimate,MorningstarConsiderBuy,MorningstarConsiderSell,MorningstarEconomicMoat,MorningstarStewardshipRating,NavellierRisk\n";
 
 for (my $i=0; $i < @stocks; $i++){
     $AllStocks{$stocks[$i]}{"Symbol"} = $quotes[$i][0];
@@ -88,6 +88,10 @@ for (my $i=0; $i < @stocks; $i++){
     $AllStocks{$stocks[$i]}{"NavellierQuantitativeGrade"} = "";
     $AllStocks{$stocks[$i]}{"NavellierTotalGrade"} = "";
     $AllStocks{$stocks[$i]}{"ZacksRating"} = "";
+    $AllStocks{$stocks[$i]}{"ZacksValue"} = "";
+    $AllStocks{$stocks[$i]}{"ZacksGrowth"} = "";
+    $AllStocks{$stocks[$i]}{"ZacksMomentum"} = "";
+    $AllStocks{$stocks[$i]}{"ZacksVGN"} = "";
     $AllStocks{$stocks[$i]}{"StockSelectorRating"} = "";
     $AllStocks{$stocks[$i]}{"NavellierRisk"} = "";
     $AllStocks{$stocks[$i]}{"MorningstarRating"} = "";
@@ -207,12 +211,22 @@ for (my $i=0; $i < @stocks; $i++){
     my @ZacksRows = split("\n", $Zacks);
     for (my $x = 0; $x <= $#ZacksRows; ++$x) {
         if ($ZacksRows[$x] =~ /class="rank_container_right"/) {
-
             $AllStocks{$stocks[$i]}{"ZacksRating"} = $ZacksRows[$x+2];
             $AllStocks{$stocks[$i]}{"ZacksRating"} =~ s/^\s*//;
             $AllStocks{$stocks[$i]}{"ZacksRating"} =~ s/-.*//;
             $AllStocks{$stocks[$i]}{"ZacksRating"} =~ s/ .*//;
-
+            $AllStocks{$stocks[$i]}{"ZacksValue"} = $ZacksRows[$x+5];
+            $AllStocks{$stocks[$i]}{"ZacksValue"} =~ s/.*Value: <span class="composite_val">//;
+            $AllStocks{$stocks[$i]}{"ZacksValue"} =~ s/<\/span>.*//;
+            $AllStocks{$stocks[$i]}{"ZacksGrowth"} = $ZacksRows[$x+5];
+            $AllStocks{$stocks[$i]}{"ZacksGrowth"} =~ s/.*Growth: <span class="composite_val">//;
+            $AllStocks{$stocks[$i]}{"ZacksGrowth"} =~ s/<\/span>.*//;
+            $AllStocks{$stocks[$i]}{"ZacksMomentum"} = $ZacksRows[$x+5];
+            $AllStocks{$stocks[$i]}{"ZacksMomentum"} =~ s/.*Momentum: <span class="composite_val">//;
+            $AllStocks{$stocks[$i]}{"ZacksMomentum"} =~ s/<\/span>.*//;
+            $AllStocks{$stocks[$i]}{"ZacksVGN"} = $ZacksRows[$x+5];
+            $AllStocks{$stocks[$i]}{"ZacksVGN"} =~ s/.*VGM: <span class="composite_val composite_val_vgm">//;
+            $AllStocks{$stocks[$i]}{"ZacksVGN"} =~ s/<\/span>.*//;
             last;
         }
     }
@@ -357,6 +371,10 @@ for (my $i=0; $i < @stocks; $i++){
     $AllStocks{$stocks[$i]}{"NavellierCashFlow"}.",".
     $AllStocks{$stocks[$i]}{"NavellierReturnOnEquity"}.",".
     $AllStocks{$stocks[$i]}{"ZacksRating"}.",".
+    $AllStocks{$stocks[$i]}{"ZacksValue"}.",".
+    $AllStocks{$stocks[$i]}{"ZacksGrowth"}.",".
+    $AllStocks{$stocks[$i]}{"ZacksMomentum"}.",".
+    $AllStocks{$stocks[$i]}{"ZacksVGN"}.",".
     $AllStocks{$stocks[$i]}{"StockSelectorRating"}.",".
     $AllStocks{$stocks[$i]}{"StockSelectorValuation"}.",".
     $AllStocks{$stocks[$i]}{"StockSelectorGain"}.",".
