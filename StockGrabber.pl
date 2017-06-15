@@ -11,7 +11,7 @@ use JSON qw( decode_json );
 $Finance::YahooQuote::TIMEOUT = 60;
 useExtendedQueryFormat();
 
-my @stocks = ("AFSI","AGN","AMZN","ATVI","AVGO","AWK","AYI","AZO","CELG","CLX","CMS","COST","CVS","DAL","DLR","DPS","DRI","DY","EA","EFX","EW","EXR","FB","FISV","FL","FLT","HD","HRL","INGR","JBLU","KR","LMT","LOW","MO","NDAQ","NKE","NOC","NTES","NVDA","ORLY","PANW","PSA","RAI","RYAAY","SBUX","SJM","STZ","T","TDG","TMO","TSS","ULTA","UNH","V","VMC","VNTV","VRSN");
+my @stocks = ("AVGO");
 
 #Grab most of the yahoo finance using api
 my @quotes = getquote @stocks;
@@ -207,11 +207,11 @@ for (my $i=0; $i < @stocks; $i++){
         }
     }
 
-    $Zacks = get("http://www.zacks.com/stock/quote/$stocks[$i]?q=$stocks[$i]") or $Zacks = "";
+    $Zacks = get("https://www.zacks.com/stock/quote/$stocks[$i]?q=$stocks[$i]") or $Zacks = "";
     my @ZacksRows = split("\n", $Zacks);
     for (my $x = 0; $x <= $#ZacksRows; ++$x) {
-        if ($ZacksRows[$x] =~ /class="rank_container_right"/) {
-            $AllStocks{$stocks[$i]}{"ZacksRating"} = $ZacksRows[$x+2];
+        if ($ZacksRows[$x] =~ /class="rank_view"/) {
+            $AllStocks{$stocks[$i]}{"ZacksRating"} = $ZacksRows[$x+1];
             $AllStocks{$stocks[$i]}{"ZacksRating"} =~ s/^\s*//;
             $AllStocks{$stocks[$i]}{"ZacksRating"} =~ s/-.*//;
             $AllStocks{$stocks[$i]}{"ZacksRating"} =~ s/ .*//;
