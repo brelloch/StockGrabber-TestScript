@@ -11,7 +11,7 @@ use JSON qw( decode_json );
 $Finance::YahooQuote::TIMEOUT = 60;
 useExtendedQueryFormat();
 
-my @stocks = ("ALGN","AMAT","AMZN","ANET","AVGO","BAX","BIP","BSBR","CC","CMS","DLR","DPZ","DRI","DVN","EQIX","FANG","GPP","IDXX","INGR","ISRG","LMT","MLCO","MO","MTD","MU","NOC","NTES","NVDA","PXD","RSG","SQM","STM","STZ","TECK","ULTA","UNH","VMW","VNTV","WB","WDC","WM","WR");
+my @stocks = ("ALGN","AMAT","AMZN","ANET","AVGO","BAX","BIP","BSBR","CC","CMS","DLR","DPZ","DRI","DVN","EQIX","FANG","GPP","IDXX","ISRG","LRCX","MLCO","MO","MTD","MU","NOC","NTES","NVDA","PXD","RACE","RSG","SQM","STM","STZ","TECK","ULTA","UNH","VMW","VNTV","WB","WDC","WM");
 
 #Grab most of the yahoo finance using api
 my @quotes = getquote @stocks;
@@ -204,12 +204,12 @@ for (my $i=0; $i < @stocks; $i++){
         }
     }
 
-    $Zacks = get("http://www.zacks.com/stock/quote/$stocks[$i]?q=$stocks[$i]") or $Zacks = "";
+    $Zacks = get("https://www.zacks.com/stock/quote/$stocks[$i]?q=$stocks[$i]") or $Zacks = "";
     my @ZacksRows = split("\n", $Zacks);
     for (my $x = 0; $x <= $#ZacksRows; ++$x) {
-        if ($ZacksRows[$x] =~ /class="rank_container_right"/) {
+        if ($ZacksRows[$x] =~ /class="rank_view"/) {
 
-            $AllStocks{$stocks[$i]}{"ZacksRating"} = $ZacksRows[$x+2];
+            $AllStocks{$stocks[$i]}{"ZacksRating"} = $ZacksRows[$x+1];
             $AllStocks{$stocks[$i]}{"ZacksRating"} =~ s/^\s*//;
             $AllStocks{$stocks[$i]}{"ZacksRating"} =~ s/-.*//;
             $AllStocks{$stocks[$i]}{"ZacksRating"} =~ s/ .*//;
@@ -256,7 +256,7 @@ for (my $i=0; $i < @stocks; $i++){
             $AllStocks{$stocks[$i]}{"MorningstarRating"} = $row;
             $AllStocks{$stocks[$i]}{"MorningstarRating"} =~ s/.*starRating"://;
             $AllStocks{$stocks[$i]}{"MorningstarRating"} =~ s/\,"an.*//;
-            if ($AllStocks{$stocks[$i]}{"MorningstarRating"} == 0) {
+            if ($AllStocks{$stocks[$i]}{"MorningstarRating"} eq "null") {
               $AllStocks{$stocks[$i]}{"MorningstarRating"} = "";
             }
             last;
