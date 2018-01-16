@@ -11,11 +11,13 @@ use JSON qw( decode_json );
 $Finance::YahooQuote::TIMEOUT = 60;
 useExtendedQueryFormat();
 
-my @stocks = ("AVGO","VBTX");
+my @stocks = ("AA","ABMD","ALGN","AMAT","ANET","ASML","AVGO","AVY","AXP","BABA","BAX","BIP","CC","CGNX","CNC","CPRT","DPZ","DRI","FMC","GPP","HD","HTHT","IDXX","IPGP","ISRG","LRCX","MLCO","MTD","MTG","MU","NOC","NVDA","NVR","PKG","PYPL","RACE","SPGI","SQM","STM","STZ","SWK","TECK","TTWO","UNH","VMW","VNTV","WB","WDC","WLK","ZTS");
 
 #Grab most of the yahoo finance using api
 my @quotes = getquote @stocks;
 
+my $finviz;
+my $finvizC;
 my $Zacks;
 my $StockSelector;
 my $StockSelectorV;
@@ -26,56 +28,42 @@ my $YahooAnalystJson;
 my %AllStocks;
 my $i = 0;
 
-print "Symbol,CompanyName,LastPrice,LastTradeDate,LastTradeTime,Change,PercentChange,Volume,AverageDailyVol,Bid,Ask,PreviousClose,".
-      "TodaysOpen,DaysRange,52WeekRange,EarningsPerShare,PERatio,DividendPayDate,DividendPerShare,DividendYield,MarketCapitalization,".
-      "StockExchange,ShortRatio,1yrTargetPrice,EPSEstCurrentYr,EPSEstNextYear,EPSEstNextQuarter,PriceEPSEstCurrentYr,PriceEPSEstNextYr,".
-      "PEGRatio,BookValue,PriceBook,PriceSales,EBITDA,50DayMovingAvg,200DayMovingAvg,TheStreetRating,MeanRecommendation,NoOfBrokers,".
+print 
+"Symbol,Name,Exchange,Sector,Industry,".
+
+"Price,AverageVol,52WeekRange,PEG,Short,Target,Beta,DividendYield,FwdPE,MarketCAP,RSI,SMA20,SMA50,SMA200,PerfMn,PerfYr,".
+
+"TheStreetRating,MeanRecommendation,NoOfBrokers,".
       "NavellierTotalGrade,NavellierQuantitativeGrade,NavellierFundamentalGrade,NavellierSalesGrowth,NavellierOperatingMarginGrowth,NavellierEarningsGrowth,".
       "NavellierEarningsMomentum,NavellierEarningsSurprises,NavellierAnalystEarningsRevisions,NavellierCashFlow,NavellierReturnOnEquity,".
       "ZacksRating,ZacksValue,ZacksGrowth,ZacksMomentum,ZacksVGN,StockSelectorRating,StockSelectorValuation,StockSelectorGain,StockSelectorComfort,".
       "MorningstarRating,MorningstarUncertainty,MorningstarFairValueEstimate,MorningstarConsiderBuy,MorningstarConsiderSell,MorningstarEconomicMoat,MorningstarStewardshipRating,NavellierRisk\n";
 
 for (my $i=0; $i < @stocks; $i++){
-    $AllStocks{$stocks[$i]}{"Symbol"} = $quotes[$i][0];
-    $AllStocks{$stocks[$i]}{"CompanyName"} = $quotes[$i][1];
-    $AllStocks{$stocks[$i]}{"CompanyName"} =~ s/,//g;
-    $AllStocks{$stocks[$i]}{"LastPrice"} = $quotes[$i][2];
-    $AllStocks{$stocks[$i]}{"LastTradeDate"} = $quotes[$i][3];
-    $AllStocks{$stocks[$i]}{"LastTradeTime"} = $quotes[$i][4];
-    $AllStocks{$stocks[$i]}{"Change"} = $quotes[$i][5];
-    $AllStocks{$stocks[$i]}{"PercentChange"} = $quotes[$i][6];
-    $AllStocks{$stocks[$i]}{"Volume"} = $quotes[$i][7];
-    $AllStocks{$stocks[$i]}{"AverageDailyVol"} = $quotes[$i][8];
-    $AllStocks{$stocks[$i]}{"Bid"} = $quotes[$i][9];
-    $AllStocks{$stocks[$i]}{"Ask"} = $quotes[$i][10];
-    $AllStocks{$stocks[$i]}{"PreviousClose"} = $quotes[$i][11];
-    $AllStocks{$stocks[$i]}{"TodaysOpen"} = $quotes[$i][12];
-    $AllStocks{$stocks[$i]}{"DaysRange"} = $quotes[$i][13];
-    $AllStocks{$stocks[$i]}{"52WeekRange"} = $quotes[$i][14];
-    $AllStocks{$stocks[$i]}{"EarningsPerShare"} = $quotes[$i][15];
-    $AllStocks{$stocks[$i]}{"PERatio"} = $quotes[$i][16];
-    $AllStocks{$stocks[$i]}{"DividendPayDate"} = $quotes[$i][17];
-    $AllStocks{$stocks[$i]}{"DividendPerShare"} = $quotes[$i][18];
-    $AllStocks{$stocks[$i]}{"DividendYield"} = $quotes[$i][19];
-    $AllStocks{$stocks[$i]}{"MarketCapitalization"} = $quotes[$i][20];
-    $AllStocks{$stocks[$i]}{"StockExchange"} = $quotes[$i][21];
-    $AllStocks{$stocks[$i]}{"ShortRatio"} = $quotes[$i][22];
-    $AllStocks{$stocks[$i]}{"1yrTargetPrice"} = $quotes[$i][23];
-    $AllStocks{$stocks[$i]}{"EPSEstCurrentYr"} = $quotes[$i][24];
-    $AllStocks{$stocks[$i]}{"EPSEstNextYear"} = $quotes[$i][25];
-    $AllStocks{$stocks[$i]}{"EPSEstNextQuarter"} = $quotes[$i][26];
-    $AllStocks{$stocks[$i]}{"PriceEPSEstCurrentYr"} = $quotes[$i][27];
-    $AllStocks{$stocks[$i]}{"PriceEPSEstNextYr"} = $quotes[$i][28];
-    $AllStocks{$stocks[$i]}{"PEGRatio"} = $quotes[$i][29];
-    $AllStocks{$stocks[$i]}{"BookValue"} = $quotes[$i][30];
-    $AllStocks{$stocks[$i]}{"PriceBook"} = $quotes[$i][31];
-    $AllStocks{$stocks[$i]}{"PriceSales"} = $quotes[$i][32];
-    $AllStocks{$stocks[$i]}{"EBITDA"} = $quotes[$i][33];
-    $AllStocks{$stocks[$i]}{"50DayMovingAvg"} = $quotes[$i][34];
-    $AllStocks{$stocks[$i]}{"200DayMovingAvg"} = $quotes[$i][35];
+    $AllStocks{$stocks[$i]}{"Symbol"} = "";
+    $AllStocks{$stocks[$i]}{"Name"} = "";
+    $AllStocks{$stocks[$i]}{"Exchange"} = "";
+    $AllStocks{$stocks[$i]}{"Sector"} = "";
+    $AllStocks{$stocks[$i]}{"Industry"} = "";
+    $AllStocks{$stocks[$i]}{"Price"} = "";
+    $AllStocks{$stocks[$i]}{"AverageVol"} = "";
+    $AllStocks{$stocks[$i]}{"52WeekRange"} = "";
+    $AllStocks{$stocks[$i]}{"PEG"} = ""; 
+    $AllStocks{$stocks[$i]}{"Short"} = ""; 
+    $AllStocks{$stocks[$i]}{"Target"} = "";    
+    $AllStocks{$stocks[$i]}{"Beta"} = "";
+    $AllStocks{$stocks[$i]}{"DividendYield"} = "";
+    $AllStocks{$stocks[$i]}{"FwdPE"} = "";
+    $AllStocks{$stocks[$i]}{"MarketCAP"} = "";
+    $AllStocks{$stocks[$i]}{"RSI"} = "";
+    $AllStocks{$stocks[$i]}{"SMA20"} = "";
+    $AllStocks{$stocks[$i]}{"SMA50"} = "";
+    $AllStocks{$stocks[$i]}{"SMA200"} = "";
+    $AllStocks{$stocks[$i]}{"PerfMn"} = "";
+    $AllStocks{$stocks[$i]}{"PerfYr"} = "";
+    $AllStocks{$stocks[$i]}{"TheStreetRating"} = "";
     $AllStocks{$stocks[$i]}{"MeanRecommendation"} = "";
     $AllStocks{$stocks[$i]}{"NoOfBrokers"} = "";
-    $AllStocks{$stocks[$i]}{"TheStreetRating"} = "";
     $AllStocks{$stocks[$i]}{"NavellierFundamentalGrade"} = "";
     $AllStocks{$stocks[$i]}{"NavellierSalesGrowth"} = "";
     $AllStocks{$stocks[$i]}{"NavellierOperatingMarginGrowth"} = "";
@@ -91,7 +79,7 @@ for (my $i=0; $i < @stocks; $i++){
     $AllStocks{$stocks[$i]}{"ZacksValue"} = "";
     $AllStocks{$stocks[$i]}{"ZacksGrowth"} = "";
     $AllStocks{$stocks[$i]}{"ZacksMomentum"} = "";
-    $AllStocks{$stocks[$i]}{"ZacksVGN"} = "";
+    $AllStocks{$stocks[$i]}{"ZacksVGM"} = "";
     $AllStocks{$stocks[$i]}{"StockSelectorRating"} = "";
     $AllStocks{$stocks[$i]}{"NavellierRisk"} = "";
     $AllStocks{$stocks[$i]}{"MorningstarRating"} = "";
@@ -119,7 +107,7 @@ for (my $i=0; $i < @stocks; $i++){
 
     my @TheStreetRows = split("\n", $res->content);
     foreach my $row (@TheStreetRows) {
-        if ($row =~ /quote-nav-rating-qr-rating/) {
+        if ($row =~ /class="quote-nav-rating-qr-rating/) {
             $AllStocks{$stocks[$i]}{"TheStreetRating"} = $row;
             $AllStocks{$stocks[$i]}{"TheStreetRating"} =~ s/.*<span class="quote-nav-rating-qr-rating \S+">//;
             $AllStocks{$stocks[$i]}{"TheStreetRating"} =~ s/<sub>.*//;
@@ -128,6 +116,128 @@ for (my $i=0; $i < @stocks; $i++){
         }
     }
 
+    $finvizC = get("https://www.finviz.com/quote.ashx?t=$stocks[$i]") or $finvizC = "";
+    my @finvizCRows = split("\n", $finvizC);
+    for (my $x = 0; $x <= $#finvizCRows; ++$x) {
+        if ($finvizCRows[$x] =~ /class="fullview-ticker" id="ticker"/) {
+            $AllStocks{$stocks[$i]}{"Symbol"} = $finvizCRows[$x];
+            $AllStocks{$stocks[$i]}{"Symbol"} =~ s/.* class="fullview-ticker" id="ticker">//;
+            $AllStocks{$stocks[$i]}{"Symbol"} =~ s/<\/a>.*//;
+        }
+        if ($finvizCRows[$x] =~ /span class="body-table">/) {
+            $AllStocks{$stocks[$i]}{"Exchange"} = $finvizCRows[$x];
+            $AllStocks{$stocks[$i]}{"Exchange"} =~ s/.*<span class="body-table">//;
+            $AllStocks{$stocks[$i]}{"Exchange"} =~ s/<\/span>.*//;
+#        }
+#   Problem - Comma "," in Company Name causes result to span 2 cells
+#        if ($finvizCRows[$x] =~ /span class="body-table">/) {
+#            $AllStocks{$stocks[$i]}{"Name"} = $finvizCRows[$x+1];
+#            $AllStocks{$stocks[$i]}{"Name"} =~ s/.*<b>//;
+#            $AllStocks{$stocks[$i]}{"Name"} =~ s/<\/b>.*//;
+#
+#            my @extraInfo = split(" \| ", $finvizCRows[$x+2]);
+#
+#   Problem - Sector captures only first word ex. for "Basic Materials", only displays "Basic"
+#            $AllStocks{$stocks[$i]}{"Sector"} = $extraInfo[4];
+#            $AllStocks{$stocks[$i]}{"Sector"} =~ s/.*class="tab-link">//;
+#            $AllStocks{$stocks[$i]}{"Sector"} =~ s/<\/a>.*//;
+#   Problem - Industry captures only first word ex. for "Semiconductor - Broad Line", only displays "Semiconductor"
+#            $AllStocks{$stocks[$i]}{"Industry"} = $extraInfo[8];
+#            $AllStocks{$stocks[$i]}{"Industry"} =~ s/.*class="tab-link">//;
+#            $AllStocks{$stocks[$i]}{"Industry"} =~ s/<\/a>.*//;
+        }
+    }
+        
+    $finviz = get("https://www.finviz.com/quote.ashx?t=$stocks[$i]") or $finviz = "";
+    my @finvizRows = split("\n", $finviz);
+    for (my $x = 0; $x <= $#finvizRows; ++$x) {
+        if ($finvizRows[$x] =~ /class="snapshot-td2-cp"/) {
+            $AllStocks{$stocks[$i]}{"MarketCAP"} = $finvizRows[$x+8];
+            $AllStocks{$stocks[$i]}{"MarketCAP"} =~ s/.*<b>//;
+            $AllStocks{$stocks[$i]}{"MarketCAP"} =~ s/<\/b>.*//;
+        }
+#   Problem - When FwdPE letters are colored, capture also gets <span color info>
+        if ($finvizRows[$x] =~ /class="snapshot-td2-cp"/) {
+            $AllStocks{$stocks[$i]}{"FwdPE"} = $finvizRows[$x+9];
+            $AllStocks{$stocks[$i]}{"FwdPE"} =~ s/.*<b>//;
+            $AllStocks{$stocks[$i]}{"FwdPE"} =~ s/<\/b>.*//;
+        }
+        if ($finvizRows[$x] =~ /class="snapshot-td2-cp"/) {
+            $AllStocks{$stocks[$i]}{"PerfMn"} = $finvizRows[$x+13];
+            $AllStocks{$stocks[$i]}{"PerfMn"} =~ s/.*<b>//;
+            $AllStocks{$stocks[$i]}{"PerfMn"} =~ s/<\/b>.*//;
+        }
+#   Problem - When PEG letters are colored, capture also gets <span color info>
+        if ($finvizRows[$x] =~ /class="snapshot-td2-cp"/) {
+            $AllStocks{$stocks[$i]}{"PEG"} = $finvizRows[$x+17];
+            $AllStocks{$stocks[$i]}{"PEG"} =~ s/.*<b>//;
+            $AllStocks{$stocks[$i]}{"PEG"} =~ s/<\/b>.*//;
+        }
+        if ($finvizRows[$x] =~ /class="snapshot-td2-cp"/) {
+            $AllStocks{$stocks[$i]}{"Short"} = $finvizRows[$x+28];
+            $AllStocks{$stocks[$i]}{"Short"} =~ s/.*<b>//;
+            $AllStocks{$stocks[$i]}{"Short"} =~ s/<\/b>.*//;
+        }
+        if ($finvizRows[$x] =~ /class="snapshot-td2-cp"/) {
+            $AllStocks{$stocks[$i]}{"Target"} = $finvizRows[$x+36];
+            $AllStocks{$stocks[$i]}{"Target"} =~ s/.*<b>//;
+            $AllStocks{$stocks[$i]}{"Target"} =~ s/<\/b>.*//;
+        }
+        if ($finvizRows[$x] =~ /class="snapshot-td2-cp"/) {
+            $AllStocks{$stocks[$i]}{"PerfYr"} = $finvizRows[$x+37];
+            $AllStocks{$stocks[$i]}{"PerfYr"} =~ s/.*<b>//;
+            $AllStocks{$stocks[$i]}{"PerfYr"} =~ s/<\/b>.*//;
+        }
+        if ($finvizRows[$x] =~ /class="snapshot-td2-cp"/) {
+            $AllStocks{$stocks[$i]}{"52WeekRange"} = $finvizRows[$x+44];
+            $AllStocks{$stocks[$i]}{"52WeekRange"} =~ s/.*<small>//;
+            $AllStocks{$stocks[$i]}{"52WeekRange"} =~ s/<\/small>.*//;
+        }
+        if ($finvizRows[$x] =~ /class="snapshot-td2-cp"/) {
+            $AllStocks{$stocks[$i]}{"Beta"} = $finvizRows[$x+53];
+            $AllStocks{$stocks[$i]}{"Beta"} =~ s/.*<b>//;
+            $AllStocks{$stocks[$i]}{"Beta"} =~ s/<\/b>.*//;
+        }
+#   Problem - When DividendYield letters are colored, capture also gets <span color info>
+        if ($finvizRows[$x] =~ /class="snapshot-td2-cp"/) {
+            $AllStocks{$stocks[$i]}{"DividendYield"} = $finvizRows[$x+56];
+            $AllStocks{$stocks[$i]}{"DividendYield"} =~ s/.*<b>//;
+            $AllStocks{$stocks[$i]}{"DividendYield"} =~ s/<\/b>.*//;
+        }
+#   Problem - When RSI letters are colored, capture also gets <span color info>
+        if ($finvizRows[$x] =~ /class="snapshot-td2-cp"/) {
+            $AllStocks{$stocks[$i]}{"RSI"} = $finvizRows[$x+68];
+            $AllStocks{$stocks[$i]}{"RSI"} =~ s/.*<b>//;
+            $AllStocks{$stocks[$i]}{"RSI"} =~ s/<\/b>.*//;
+        }
+        if ($finvizRows[$x] =~ /class="snapshot-td2-cp"/) {
+            $AllStocks{$stocks[$i]}{"AverageVol"} = $finvizRows[$x+84];
+            $AllStocks{$stocks[$i]}{"AverageVol"} =~ s/.*<b>//;
+            $AllStocks{$stocks[$i]}{"AverageVol"} =~ s/<\/b>.*//;
+        }
+        if ($finvizRows[$x] =~ /class="snapshot-td2-cp"/) {
+            $AllStocks{$stocks[$i]}{"Price"} = $finvizRows[$x+85];
+            $AllStocks{$stocks[$i]}{"Price"} =~ s/.*<b>//;
+            $AllStocks{$stocks[$i]}{"Price"} =~ s/<\/b>.*//;
+        }
+        if ($finvizRows[$x] =~ /class="snapshot-td2-cp"/) {
+            $AllStocks{$stocks[$i]}{"SMA20"} = $finvizRows[$x+89];
+            $AllStocks{$stocks[$i]}{"SMA20"} =~ s/.*;">//;
+            $AllStocks{$stocks[$i]}{"SMA20"} =~ s/<\/span>.*//;
+        }
+        if ($finvizRows[$x] =~ /class="snapshot-td2-cp"/) {
+            $AllStocks{$stocks[$i]}{"SMA50"} = $finvizRows[$x+90];
+            $AllStocks{$stocks[$i]}{"SMA50"} =~ s/.*;">//;
+            $AllStocks{$stocks[$i]}{"SMA50"} =~ s/<\/span>.*//;
+        }
+        if ($finvizRows[$x] =~ /class="snapshot-td2-cp"/) {
+            $AllStocks{$stocks[$i]}{"SMA200"} = $finvizRows[$x+91];
+            $AllStocks{$stocks[$i]}{"SMA200"} =~ s/.*;">//;
+            $AllStocks{$stocks[$i]}{"SMA200"} =~ s/<\/span>.*//;
+            last;
+        }
+    }    
+    
     $Navellier = get("http://navelliergrowth.investorplace.com/portfolio-grader/stock-report.html?t=$stocks[$i]") or $Navellier = "";
     my @NavellierRows = split("\n", $Navellier);
 
@@ -207,26 +317,29 @@ for (my $i=0; $i < @stocks; $i++){
         }
     }
 
-    $Zacks = get("http://www.zacks.com/stock/quote/$stocks[$i]?q=$stocks[$i]") or $Zacks = "";
+    $Zacks = get("https://www.zacks.com/stock/quote/$stocks[$i]?q=$stocks[$i]") or $Zacks = "";
     my @ZacksRows = split("\n", $Zacks);
     for (my $x = 0; $x <= $#ZacksRows; ++$x) {
-        if ($ZacksRows[$x] =~ /class="rank_container_right"/) {
-            $AllStocks{$stocks[$i]}{"ZacksRating"} = $ZacksRows[$x+2];
+        if ($ZacksRows[$x] =~ /class="rank_view"/) {
+            $AllStocks{$stocks[$i]}{"ZacksRating"} = $ZacksRows[$x+1];
             $AllStocks{$stocks[$i]}{"ZacksRating"} =~ s/^\s*//;
             $AllStocks{$stocks[$i]}{"ZacksRating"} =~ s/-.*//;
             $AllStocks{$stocks[$i]}{"ZacksRating"} =~ s/ .*//;
-            $AllStocks{$stocks[$i]}{"ZacksValue"} = $ZacksRows[$x+5];
-            $AllStocks{$stocks[$i]}{"ZacksValue"} =~ s/.*Value: <span class="composite_val">//;
+
+            my @extraInfo = split(" \| ", $ZacksRows[$x+11]);
+
+            $AllStocks{$stocks[$i]}{"ZacksValue"} = $extraInfo[1];
+            $AllStocks{$stocks[$i]}{"ZacksValue"} =~ s/.*"composite_val">//;
             $AllStocks{$stocks[$i]}{"ZacksValue"} =~ s/<\/span>.*//;
-            $AllStocks{$stocks[$i]}{"ZacksGrowth"} = $ZacksRows[$x+5];
-            $AllStocks{$stocks[$i]}{"ZacksGrowth"} =~ s/.*Growth: <span class="composite_val">//;
+            $AllStocks{$stocks[$i]}{"ZacksGrowth"} = $extraInfo[4];
+            $AllStocks{$stocks[$i]}{"ZacksGrowth"} =~ s/.*"composite_val">//;
             $AllStocks{$stocks[$i]}{"ZacksGrowth"} =~ s/<\/span>.*//;
-            $AllStocks{$stocks[$i]}{"ZacksMomentum"} = $ZacksRows[$x+5];
-            $AllStocks{$stocks[$i]}{"ZacksMomentum"} =~ s/.*Momentum: <span class="composite_val">//;
+            $AllStocks{$stocks[$i]}{"ZacksMomentum"} = $extraInfo[7];
+            $AllStocks{$stocks[$i]}{"ZacksMomentum"} =~ s/.*"composite_val">//;
             $AllStocks{$stocks[$i]}{"ZacksMomentum"} =~ s/<\/span>.*//;
-            $AllStocks{$stocks[$i]}{"ZacksVGN"} = $ZacksRows[$x+5];
-            $AllStocks{$stocks[$i]}{"ZacksVGN"} =~ s/.*VGM: <span class="composite_val composite_val_vgm">//;
-            $AllStocks{$stocks[$i]}{"ZacksVGN"} =~ s/<\/span>.*//;
+            $AllStocks{$stocks[$i]}{"ZacksVGM"} = $extraInfo[11];
+            $AllStocks{$stocks[$i]}{"ZacksVGM"} =~ s/.*composite_val_vgm">//;
+            $AllStocks{$stocks[$i]}{"ZacksVGM"} =~ s/<\/span>.*//;
             last;
         }
     }
@@ -238,12 +351,11 @@ for (my $i=0; $i < @stocks; $i++){
             $AllStocks{$stocks[$i]}{"StockSelectorRating"} = $row;
             $AllStocks{$stocks[$i]}{"StockSelectorRating"} =~ s/.*overall rank of <b>//;
             $AllStocks{$stocks[$i]}{"StockSelectorRating"} =~ s/\ out.*//;
-
             last;
         }
     }
 
-        $StockSelectorV = get("http://www.stockselector.com/valuations.asp?symbol=$stocks[$i]") or $StockSelectorV = "";
+    $StockSelectorV = get("http://www.stockselector.com/valuations.asp?symbol=$stocks[$i]") or $StockSelectorV = "";
     my @StockSelectorVRows = split("\n", $StockSelectorV);
     foreach my $row (@StockSelectorVRows) {
         if ($row =~ /Average Valuation:/) {
@@ -262,100 +374,86 @@ for (my $i=0; $i < @stocks; $i++){
         }
     }
 
-    $Morningstar = get("http://quotes.morningstar.com/stock/$stocks[$i]/s?t=$stocks[$i]") or $Morningstar = "";
-    my @MorningstarRows = split("\n", $Morningstar);
-    foreach my $row (@MorningstarRows) {
-        if ($row =~ /starRating":/) {
-            $AllStocks{$stocks[$i]}{"MorningstarRating"} = $row;
-            $AllStocks{$stocks[$i]}{"MorningstarRating"} =~ s/.*starRating"://;
-            $AllStocks{$stocks[$i]}{"MorningstarRating"} =~ s/\,"an.*//;
-            if ($AllStocks{$stocks[$i]}{"MorningstarRating"} eq "null") {
-              $AllStocks{$stocks[$i]}{"MorningstarRating"} = "";
-            }
-            last;
-        }
-    }
-
-    $MorningstarTake = get("http://analysisreport.morningstar.com/stock/research?t=$stocks[$i]&region=USA&culture=en-US&productcode=MLE") or $MorningstarTake = "";
-    @MorningstarRows = split("\n", $MorningstarTake);
-    my $MorningstarTakeUrl = "";
-    foreach my $row (@MorningstarRows) {
-      if ($row =~ /c-take/) {
-        $MorningstarTakeUrl = $row;
-        $MorningstarTakeUrl =~ s/.*analysisreport.morningstar.com//;
-        $MorningstarTakeUrl =~ s/".*//;
-        $MorningstarTakeUrl = "http://analysisreport.morningstar.com$MorningstarTakeUrl";
-        last;
-      }
-    }
-
-    if ($MorningstarTakeUrl ne "") {
-      $MorningstarTake = get($MorningstarTakeUrl) or die 'Unable to get morningstar with stock '.$stocks[$i];
-      @MorningstarRows = split("\n", $MorningstarTake);
-      $MorningstarTakeUrl = "";
-      for (my $x = 0; $x <= $#MorningstarRows; ++$x) {
-        if ($MorningstarRows[$x] =~ /^\s*Uncertainty/) {
-          $AllStocks{$stocks[$i]}{"MorningstarUncertainty"} = "$MorningstarRows[$x+7]";
-          $AllStocks{$stocks[$i]}{"MorningstarUncertainty"} =~ s/.*<td>//;
-          $AllStocks{$stocks[$i]}{"MorningstarUncertainty"} =~ s/<\/td>.*//;
-          $AllStocks{$stocks[$i]}{"MorningstarFairValueEstimate"} = "$MorningstarRows[$x+6]";
-          $AllStocks{$stocks[$i]}{"MorningstarFairValueEstimate"} =~ s/.*<td>//;
-          $AllStocks{$stocks[$i]}{"MorningstarFairValueEstimate"} =~ s/<span>.*//;
-        } elsif ($MorningstarRows[$x] =~ /^\s*Economic Moat/) {
-          $AllStocks{$stocks[$i]}{"MorningstarConsiderBuy"} = "$MorningstarRows[$x+4]";
-          $AllStocks{$stocks[$i]}{"MorningstarConsiderBuy"} =~ s/.*<td>//;
-          $AllStocks{$stocks[$i]}{"MorningstarConsiderBuy"} =~ s/<span>.*//;
-          $AllStocks{$stocks[$i]}{"MorningstarConsiderSell"} = "$MorningstarRows[$x+5]";
-          $AllStocks{$stocks[$i]}{"MorningstarConsiderSell"} =~ s/.*<td>//;
-          $AllStocks{$stocks[$i]}{"MorningstarConsiderSell"} =~ s/<span>.*//;
-          $AllStocks{$stocks[$i]}{"MorningstarEconomicMoat"} = "$MorningstarRows[$x+6]";
-          $AllStocks{$stocks[$i]}{"MorningstarEconomicMoat"} =~ s/.*<td>//;
-          $AllStocks{$stocks[$i]}{"MorningstarEconomicMoat"} =~ s/<\/td>.*//;
-        } elsif ($MorningstarRows[$x] =~ /id="creditStewardship"/) {
-          $AllStocks{$stocks[$i]}{"MorningstarStewardshipRating"} = "$MorningstarRows[$x+2]";
-          $AllStocks{$stocks[$i]}{"MorningstarStewardshipRating"} =~ s/.*colspan="3">//;
-          $AllStocks{$stocks[$i]}{"MorningstarStewardshipRating"} =~ s/<\/td>.*//;
-        }
-      }
-    }
+#   Problem - Morningstar moved these to their premium service
+#    $Morningstar = get("http://quotes.morningstar.com/stock/$stocks[$i]/s?t=$stocks[$i]") or $Morningstar = "";
+#    my @MorningstarRows = split("\n", $Morningstar);
+#    foreach my $row (@MorningstarRows) {
+#        if ($row =~ /starRating":/) {
+#            $AllStocks{$stocks[$i]}{"MorningstarRating"} = $row;
+#            $AllStocks{$stocks[$i]}{"MorningstarRating"} =~ s/.*starRating"://;
+#            $AllStocks{$stocks[$i]}{"MorningstarRating"} =~ s/\,"an.*//;
+#            if ($AllStocks{$stocks[$i]}{"MorningstarRating"} eq "null") {
+#              $AllStocks{$stocks[$i]}{"MorningstarRating"} = "";
+#            }
+#            last;
+#        }
+#    }
+#   
+#    $MorningstarTake = get("http://analysisreport.morningstar.com/stock/research?t=$stocks[$i]&region=USA&culture=en-US&productcode=MLE") or $MorningstarTake = "";
+#    @MorningstarRows = split("\n", $MorningstarTake);
+#    my $MorningstarTakeUrl = "";
+#    foreach my $row (@MorningstarRows) {
+#      if ($row =~ /c-take/) {
+#        $MorningstarTakeUrl = $row;
+#        $MorningstarTakeUrl =~ s/.*analysisreport.morningstar.com//;
+#        $MorningstarTakeUrl =~ s/".*//;
+#        $MorningstarTakeUrl = "http://analysisreport.morningstar.com$MorningstarTakeUrl";
+#        last;
+#      }
+#    }
+#
+#    if ($MorningstarTakeUrl ne "") {
+#      $MorningstarTake = get($MorningstarTakeUrl) or die 'Unable to get morningstar with stock '.$stocks[$i];
+#      @MorningstarRows = split("\n", $MorningstarTake);
+#      $MorningstarTakeUrl = "";
+#      for (my $x = 0; $x <= $#MorningstarRows; ++$x) {
+#        if ($MorningstarRows[$x] =~ /^\s*Uncertainty/) {
+#          $AllStocks{$stocks[$i]}{"MorningstarUncertainty"} = "$MorningstarRows[$x+7]";
+#          $AllStocks{$stocks[$i]}{"MorningstarUncertainty"} =~ s/.*<td>//;
+#          $AllStocks{$stocks[$i]}{"MorningstarUncertainty"} =~ s/<\/td>.*//;
+#          $AllStocks{$stocks[$i]}{"MorningstarFairValueEstimate"} = "$MorningstarRows[$x+6]";
+#          $AllStocks{$stocks[$i]}{"MorningstarFairValueEstimate"} =~ s/.*<td>//;
+#          $AllStocks{$stocks[$i]}{"MorningstarFairValueEstimate"} =~ s/<span>.*//;
+#        } elsif ($MorningstarRows[$x] =~ /^\s*Economic Moat/) {
+#          $AllStocks{$stocks[$i]}{"MorningstarConsiderBuy"} = "$MorningstarRows[$x+4]";
+#          $AllStocks{$stocks[$i]}{"MorningstarConsiderBuy"} =~ s/.*<td>//;
+#          $AllStocks{$stocks[$i]}{"MorningstarConsiderBuy"} =~ s/<span>.*//;
+#          $AllStocks{$stocks[$i]}{"MorningstarConsiderSell"} = "$MorningstarRows[$x+5]";
+#          $AllStocks{$stocks[$i]}{"MorningstarConsiderSell"} =~ s/.*<td>//;
+#          $AllStocks{$stocks[$i]}{"MorningstarConsiderSell"} =~ s/<span>.*//;
+#          $AllStocks{$stocks[$i]}{"MorningstarEconomicMoat"} = "$MorningstarRows[$x+6]";
+#          $AllStocks{$stocks[$i]}{"MorningstarEconomicMoat"} =~ s/.*<td>//;
+#          $AllStocks{$stocks[$i]}{"MorningstarEconomicMoat"} =~ s/<\/td>.*//;
+#        } elsif ($MorningstarRows[$x] =~ /id="creditStewardship"/) {
+#          $AllStocks{$stocks[$i]}{"MorningstarStewardshipRating"} = "$MorningstarRows[$x+2]";
+#          $AllStocks{$stocks[$i]}{"MorningstarStewardshipRating"} =~ s/.*colspan="3">//;
+#          $AllStocks{$stocks[$i]}{"MorningstarStewardshipRating"} =~ s/<\/td>.*//;
+#        }
+#      }
+#    }
 
     print
     $AllStocks{$stocks[$i]}{"Symbol"}.",".
-    $AllStocks{$stocks[$i]}{"CompanyName"}.",".
-    $AllStocks{$stocks[$i]}{"LastPrice"}.",".
-    $AllStocks{$stocks[$i]}{"LastTradeDate"}.",".
-    $AllStocks{$stocks[$i]}{"LastTradeTime"}.",".
-    $AllStocks{$stocks[$i]}{"Change"}.",".
-    $AllStocks{$stocks[$i]}{"PercentChange"}.",".
-    $AllStocks{$stocks[$i]}{"Volume"}.",".
-    $AllStocks{$stocks[$i]}{"AverageDailyVol"}.",".
-    $AllStocks{$stocks[$i]}{"Bid"}.",".
-    $AllStocks{$stocks[$i]}{"Ask"}.",".
-    $AllStocks{$stocks[$i]}{"PreviousClose"}.",".
-    $AllStocks{$stocks[$i]}{"TodaysOpen"}.",".
-    $AllStocks{$stocks[$i]}{"DaysRange"}.",".
+    $AllStocks{$stocks[$i]}{"Name"}.",".
+    $AllStocks{$stocks[$i]}{"Exchange"}.",".
+    $AllStocks{$stocks[$i]}{"Sector"}.",".
+    $AllStocks{$stocks[$i]}{"Industry"}.",".
+    $AllStocks{$stocks[$i]}{"Price"}.",".
+    $AllStocks{$stocks[$i]}{"AverageVol"}.",".
     $AllStocks{$stocks[$i]}{"52WeekRange"}.",".
-    $AllStocks{$stocks[$i]}{"EarningsPerShare"}.",".
-    $AllStocks{$stocks[$i]}{"PERatio"}.",".
-    $AllStocks{$stocks[$i]}{"DividendPayDate"}.",".
-    $AllStocks{$stocks[$i]}{"DividendPerShare"}.",".
+    $AllStocks{$stocks[$i]}{"PEG"}.",". 
+    $AllStocks{$stocks[$i]}{"Short"}.",".  
+    $AllStocks{$stocks[$i]}{"Target"}.",".    
+    $AllStocks{$stocks[$i]}{"Beta"}.",".
     $AllStocks{$stocks[$i]}{"DividendYield"}.",".
-    $AllStocks{$stocks[$i]}{"MarketCapitalization"}.",".
-    $AllStocks{$stocks[$i]}{"StockExchange"}.",".
-    $AllStocks{$stocks[$i]}{"ShortRatio"}.",".
-    $AllStocks{$stocks[$i]}{"1yrTargetPrice"}.",".
-    $AllStocks{$stocks[$i]}{"EPSEstCurrentYr"}.",".
-    $AllStocks{$stocks[$i]}{"EPSEstNextYear"}.",".
-    $AllStocks{$stocks[$i]}{"EPSEstNextQuarter"}.",".
-    $AllStocks{$stocks[$i]}{"PriceEPSEstCurrentYr"}.",".
-    $AllStocks{$stocks[$i]}{"PriceEPSEstNextYr"}.",".
-    $AllStocks{$stocks[$i]}{"PEGRatio"}.",".
-    $AllStocks{$stocks[$i]}{"BookValue"}.",".
-    $AllStocks{$stocks[$i]}{"PriceBook"}.",".
-    $AllStocks{$stocks[$i]}{"PriceSales"}.",".
-    $AllStocks{$stocks[$i]}{"EBITDA"}.",".
-    $AllStocks{$stocks[$i]}{"50DayMovingAvg"}.",".
-    $AllStocks{$stocks[$i]}{"200DayMovingAvg"}.",".
+    $AllStocks{$stocks[$i]}{"FwdPE"}.",".
+    $AllStocks{$stocks[$i]}{"MarketCAP"}.",".    
+    $AllStocks{$stocks[$i]}{"RSI"}.",".
+    $AllStocks{$stocks[$i]}{"SMA20"}.",".
+    $AllStocks{$stocks[$i]}{"SMA50"}.",".
+    $AllStocks{$stocks[$i]}{"SMA200"}.",".
+    $AllStocks{$stocks[$i]}{"PerfMn"}.",".
+    $AllStocks{$stocks[$i]}{"PerfYr"}.",".    
     $AllStocks{$stocks[$i]}{"TheStreetRating"}.",".
     $AllStocks{$stocks[$i]}{"MeanRecommendation"}.",".
     $AllStocks{$stocks[$i]}{"NoOfBrokers"}.",".
@@ -374,7 +472,7 @@ for (my $i=0; $i < @stocks; $i++){
     $AllStocks{$stocks[$i]}{"ZacksValue"}.",".
     $AllStocks{$stocks[$i]}{"ZacksGrowth"}.",".
     $AllStocks{$stocks[$i]}{"ZacksMomentum"}.",".
-    $AllStocks{$stocks[$i]}{"ZacksVGN"}.",".
+    $AllStocks{$stocks[$i]}{"ZacksVGM"}.",".
     $AllStocks{$stocks[$i]}{"StockSelectorRating"}.",".
     $AllStocks{$stocks[$i]}{"StockSelectorValuation"}.",".
     $AllStocks{$stocks[$i]}{"StockSelectorGain"}.",".

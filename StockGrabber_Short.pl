@@ -11,7 +11,7 @@ use JSON qw( decode_json );
 $Finance::YahooQuote::TIMEOUT = 60;
 useExtendedQueryFormat();
 
-my @stocks = ("ALGN","AMAT","AMZN","ANET","AVGO","BAX","BIP","BSBR","CC","CMS","DLR","DPZ","DRI","DVN","EQIX","FANG","GPP","IDXX","ISRG","LRCX","MLCO","MO","MTD","MU","NOC","NTES","NVDA","PXD","RACE","RSG","SQM","STM","STZ","TECK","ULTA","UNH","VMW","VNTV","WB","WDC","WM");
+my @stocks = ("AA","ABMD","ALGN","AMAT","ANET","ASML","AVGO","AVY","AXP","BABA","BAX","BIP","CC","CGNX","CNC","CPRT","DPZ","DRI","FMC","GPP","HD","HTHT","IDXX","IPGP","ISRG","LRCX","MLCO","MTD","MTG","MU","NOC","NVDA","NVR","PKG","PYPL","RACE","SPGI","SQM","STM","STZ","SWK","TECK","TTWO","UNH","VMW","VNTV","WB","WDC","WLK","ZTS");
 
 #Grab most of the yahoo finance using api
 my @quotes = getquote @stocks;
@@ -116,7 +116,7 @@ for (my $i=0; $i < @stocks; $i++){
 
     my @TheStreetRows = split("\n", $res->content);
     foreach my $row (@TheStreetRows) {
-        if ($row =~ /quote-nav-rating-qr-rating/) {
+        if ($row =~ /class="quote-nav-rating-qr-rating/) {
             $AllStocks{$stocks[$i]}{"TheStreetRating"} = $row;
             $AllStocks{$stocks[$i]}{"TheStreetRating"} =~ s/.*<span class="quote-nav-rating-qr-rating \S+">//;
             $AllStocks{$stocks[$i]}{"TheStreetRating"} =~ s/<sub>.*//;
