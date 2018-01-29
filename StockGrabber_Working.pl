@@ -2,19 +2,12 @@
 use warnings;
 use strict;
 use LWP::Simple;
-use Finance::YahooQuote;
 use Data::Dumper;
 use LWP::UserAgent;
 use HTTP::Cookies;
 use JSON qw( decode_json );
 
-$Finance::YahooQuote::TIMEOUT = 60;
-useExtendedQueryFormat();
-
 my @stocks = ("AVGO");
-
-#Grab most of the yahoo finance using api
-my @quotes = getquote @stocks;
 
 my $finviz;
 my $finvizC;
@@ -28,7 +21,7 @@ my $YahooAnalystJson;
 my %AllStocks;
 my $i = 0;
 
-print 
+print
 "Symbol,Name,Exchange,Sector,Industry,".
 
 "Price,AverageVol,52WeekRange,PEG,Short,Target,Beta,DividendYield,FwdPE,MarketCAP,RSI,SMA20,SMA50,SMA200,PerfMn,PerfYr,".
@@ -48,9 +41,9 @@ for (my $i=0; $i < @stocks; $i++){
     $AllStocks{$stocks[$i]}{"Price"} = "";
     $AllStocks{$stocks[$i]}{"AverageVol"} = "";
     $AllStocks{$stocks[$i]}{"52WeekRange"} = "";
-    $AllStocks{$stocks[$i]}{"PEG"} = ""; 
-    $AllStocks{$stocks[$i]}{"Short"} = ""; 
-    $AllStocks{$stocks[$i]}{"Target"} = "";    
+    $AllStocks{$stocks[$i]}{"PEG"} = "";
+    $AllStocks{$stocks[$i]}{"Short"} = "";
+    $AllStocks{$stocks[$i]}{"Target"} = "";
     $AllStocks{$stocks[$i]}{"Beta"} = "";
     $AllStocks{$stocks[$i]}{"DividendYield"} = "";
     $AllStocks{$stocks[$i]}{"FwdPE"} = "";
@@ -147,7 +140,7 @@ for (my $i=0; $i < @stocks; $i++){
 #            $AllStocks{$stocks[$i]}{"Industry"} =~ s/<\/a>.*//;
         }
     }
-        
+
     $finviz = get("https://www.finviz.com/quote.ashx?t=$stocks[$i]") or $finviz = "";
     my @finvizRows = split("\n", $finviz);
     for (my $x = 0; $x <= $#finvizRows; ++$x) {
@@ -156,22 +149,26 @@ for (my $i=0; $i < @stocks; $i++){
             $AllStocks{$stocks[$i]}{"MarketCAP"} =~ s/.*<b>//;
             $AllStocks{$stocks[$i]}{"MarketCAP"} =~ s/<\/b>.*//;
         }
-#   Problem - When FwdPE letters are colored, capture also gets <span color info>
         if ($finvizRows[$x] =~ /class="snapshot-td2-cp"/) {
             $AllStocks{$stocks[$i]}{"FwdPE"} = $finvizRows[$x+9];
             $AllStocks{$stocks[$i]}{"FwdPE"} =~ s/.*<b>//;
             $AllStocks{$stocks[$i]}{"FwdPE"} =~ s/<\/b>.*//;
+            $AllStocks{$stocks[$i]}{"FwdPE"} =~ s/.*<span style="color:#.*;">//;
+            $AllStocks{$stocks[$i]}{"FwdPE"} =~ s/<\/span>//;
         }
         if ($finvizRows[$x] =~ /class="snapshot-td2-cp"/) {
             $AllStocks{$stocks[$i]}{"PerfMn"} = $finvizRows[$x+13];
             $AllStocks{$stocks[$i]}{"PerfMn"} =~ s/.*<b>//;
             $AllStocks{$stocks[$i]}{"PerfMn"} =~ s/<\/b>.*//;
+            $AllStocks{$stocks[$i]}{"PerfMn"} =~ s/.*<span style="color:#.*;">//;
+            $AllStocks{$stocks[$i]}{"PerfMn"} =~ s/<\/span>//;
         }
-#   Problem - When PEG letters are colored, capture also gets <span color info>
         if ($finvizRows[$x] =~ /class="snapshot-td2-cp"/) {
             $AllStocks{$stocks[$i]}{"PEG"} = $finvizRows[$x+17];
             $AllStocks{$stocks[$i]}{"PEG"} =~ s/.*<b>//;
             $AllStocks{$stocks[$i]}{"PEG"} =~ s/<\/b>.*//;
+            $AllStocks{$stocks[$i]}{"PEG"} =~ s/.*<span style="color:#.*;">//;
+            $AllStocks{$stocks[$i]}{"PEG"} =~ s/<\/span>//;
         }
         if ($finvizRows[$x] =~ /class="snapshot-td2-cp"/) {
             $AllStocks{$stocks[$i]}{"Short"} = $finvizRows[$x+28];
@@ -182,11 +179,15 @@ for (my $i=0; $i < @stocks; $i++){
             $AllStocks{$stocks[$i]}{"Target"} = $finvizRows[$x+36];
             $AllStocks{$stocks[$i]}{"Target"} =~ s/.*<b>//;
             $AllStocks{$stocks[$i]}{"Target"} =~ s/<\/b>.*//;
+            $AllStocks{$stocks[$i]}{"Target"} =~ s/.*<span style="color:#.*;">//;
+            $AllStocks{$stocks[$i]}{"Target"} =~ s/<\/span>//;
         }
         if ($finvizRows[$x] =~ /class="snapshot-td2-cp"/) {
             $AllStocks{$stocks[$i]}{"PerfYr"} = $finvizRows[$x+37];
             $AllStocks{$stocks[$i]}{"PerfYr"} =~ s/.*<b>//;
             $AllStocks{$stocks[$i]}{"PerfYr"} =~ s/<\/b>.*//;
+            $AllStocks{$stocks[$i]}{"PerfYr"} =~ s/.*<span style="color:#.*;">//;
+            $AllStocks{$stocks[$i]}{"PerfYr"} =~ s/<\/span>//;
         }
         if ($finvizRows[$x] =~ /class="snapshot-td2-cp"/) {
             $AllStocks{$stocks[$i]}{"52WeekRange"} = $finvizRows[$x+44];
@@ -236,8 +237,8 @@ for (my $i=0; $i < @stocks; $i++){
             $AllStocks{$stocks[$i]}{"SMA200"} =~ s/<\/span>.*//;
             last;
         }
-    }    
-    
+    }
+
     $Navellier = get("http://navelliergrowth.investorplace.com/portfolio-grader/stock-report.html?t=$stocks[$i]") or $Navellier = "";
     my @NavellierRows = split("\n", $Navellier);
 
@@ -377,7 +378,7 @@ for (my $i=0; $i < @stocks; $i++){
 #            last;
 #        }
 #    }
-#   
+#
 #    $MorningstarTake = get("http://analysisreport.morningstar.com/stock/research?t=$stocks[$i]&region=USA&culture=en-US&productcode=MLE") or $MorningstarTake = "";
 #    @MorningstarRows = split("\n", $MorningstarTake);
 #    my $MorningstarTakeUrl = "";
@@ -430,19 +431,19 @@ for (my $i=0; $i < @stocks; $i++){
     $AllStocks{$stocks[$i]}{"Price"}.",".
     $AllStocks{$stocks[$i]}{"AverageVol"}.",".
     $AllStocks{$stocks[$i]}{"52WeekRange"}.",".
-    $AllStocks{$stocks[$i]}{"PEG"}.",". 
-    $AllStocks{$stocks[$i]}{"Short"}.",".  
-    $AllStocks{$stocks[$i]}{"Target"}.",".    
+    $AllStocks{$stocks[$i]}{"PEG"}.",".
+    $AllStocks{$stocks[$i]}{"Short"}.",".
+    $AllStocks{$stocks[$i]}{"Target"}.",".
     $AllStocks{$stocks[$i]}{"Beta"}.",".
     $AllStocks{$stocks[$i]}{"DividendYield"}.",".
     $AllStocks{$stocks[$i]}{"FwdPE"}.",".
-    $AllStocks{$stocks[$i]}{"MarketCAP"}.",".    
+    $AllStocks{$stocks[$i]}{"MarketCAP"}.",".
     $AllStocks{$stocks[$i]}{"RSI"}.",".
     $AllStocks{$stocks[$i]}{"SMA20"}.",".
     $AllStocks{$stocks[$i]}{"SMA50"}.",".
     $AllStocks{$stocks[$i]}{"SMA200"}.",".
     $AllStocks{$stocks[$i]}{"PerfMn"}.",".
-    $AllStocks{$stocks[$i]}{"PerfYr"}.",".    
+    $AllStocks{$stocks[$i]}{"PerfYr"}.",".
     $AllStocks{$stocks[$i]}{"TheStreetRating"}.",".
     $AllStocks{$stocks[$i]}{"MeanRecommendation"}.",".
     $AllStocks{$stocks[$i]}{"NoOfBrokers"}.",".
