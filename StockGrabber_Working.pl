@@ -11,7 +11,7 @@ use JSON qw( decode_json );
 $Finance::YahooQuote::TIMEOUT = 60;
 useExtendedQueryFormat();
 
-my @stocks = ("AA","ABMD","ALGN","AMAT","ANET","ASML","AVGO","AVY","AXP","BABA","BAX","BIP","CC","CGNX","CNC","CPRT","DPZ","DRI","FMC","GPP","HD","HTHT","IDXX","IPGP","ISRG","LRCX","MLCO","MTD","MTG","MU","NOC","NVDA","NVR","PKG","PYPL","RACE","SPGI","SQM","STM","STZ","SWK","TECK","TTWO","UNH","VMW","VNTV","WB","WDC","WLK","ZTS");
+my @stocks = ("AVGO");
 
 #Grab most of the yahoo finance using api
 my @quotes = getquote @stocks;
@@ -257,62 +257,51 @@ for (my $i=0; $i < @stocks; $i++){
             $AllStocks{$stocks[$i]}{"NavellierSalesGrowth"} = $NavellierRows[++$x];
             $AllStocks{$stocks[$i]}{"NavellierSalesGrowth"} =~ s/.*<td>//;
             $AllStocks{$stocks[$i]}{"NavellierSalesGrowth"} =~ s/<\/td>.*//;
-
             next;
         } elsif (/Operating Margin Growth:/) {
             $AllStocks{$stocks[$i]}{"NavellierOperatingMarginGrowth"} = $NavellierRows[++$x];
             $AllStocks{$stocks[$i]}{"NavellierOperatingMarginGrowth"} =~ s/.*<td>//;
             $AllStocks{$stocks[$i]}{"NavellierOperatingMarginGrowth"} =~ s/<\/td>.*//;
-
             next;
         } elsif (/Earnings Growth:/) {
             $AllStocks{$stocks[$i]}{"NavellierEarningsGrowth"} = $NavellierRows[++$x];
             $AllStocks{$stocks[$i]}{"NavellierEarningsGrowth"} =~ s/.*<td>//;
             $AllStocks{$stocks[$i]}{"NavellierEarningsGrowth"} =~ s/<\/td>.*//;
-
             next;
         } elsif (/Earnings Momentum:/) {
             $AllStocks{$stocks[$i]}{"NavellierEarningsMomentum"} = $NavellierRows[++$x];
             $AllStocks{$stocks[$i]}{"NavellierEarningsMomentum"} =~ s/.*<td>//;
             $AllStocks{$stocks[$i]}{"NavellierEarningsMomentum"} =~ s/<\/td>.*//;
-
             next;
         } elsif (/Earnings Surprises:/) {
             $AllStocks{$stocks[$i]}{"NavellierEarningsSurprises"} = $NavellierRows[++$x];
             $AllStocks{$stocks[$i]}{"NavellierEarningsSurprises"} =~ s/.*<td>//;
             $AllStocks{$stocks[$i]}{"NavellierEarningsSurprises"} =~ s/<\/td>.*//;
-
             next;
         } elsif (/Analyst Earnings Revisions:/) {
             $AllStocks{$stocks[$i]}{"NavellierAnalystEarningsRevisions"} = $NavellierRows[++$x];
             $AllStocks{$stocks[$i]}{"NavellierAnalystEarningsRevisions"} =~ s/.*<td>//;
             $AllStocks{$stocks[$i]}{"NavellierAnalystEarningsRevisions"} =~ s/<\/td>.*//;
-
             next;
         } elsif (/Cash Flow:/) {
             $AllStocks{$stocks[$i]}{"NavellierCashFlow"} = $NavellierRows[++$x];
             $AllStocks{$stocks[$i]}{"NavellierCashFlow"} =~ s/.*<td>//;
             $AllStocks{$stocks[$i]}{"NavellierCashFlow"} =~ s/<\/td>.*//;
-
             next;
         } elsif (/Return on Equity:/) {
             $AllStocks{$stocks[$i]}{"NavellierReturnOnEquity"} = $NavellierRows[++$x];
             $AllStocks{$stocks[$i]}{"NavellierReturnOnEquity"} =~ s/.*<td>//;
             $AllStocks{$stocks[$i]}{"NavellierReturnOnEquity"} =~ s/<\/td>.*//;
-
             next;
         } elsif (/Quantitative Grade:/) {
             $AllStocks{$stocks[$i]}{"NavellierQuantitativeGrade"} = $NavellierRows[++$x];
             $AllStocks{$stocks[$i]}{"NavellierQuantitativeGrade"} =~ s/.*<td>//;
             $AllStocks{$stocks[$i]}{"NavellierQuantitativeGrade"} =~ s/<\/td>.*//;
-
             next;
-        }
-         elsif (/Total Grade:/) {
+        } elsif (/Total Grade:/) {
             $AllStocks{$stocks[$i]}{"NavellierTotalGrade"} = $NavellierRows[++$x];
             $AllStocks{$stocks[$i]}{"NavellierTotalGrade"} =~ s/.*<td>//;
             $AllStocks{$stocks[$i]}{"NavellierTotalGrade"} =~ s/<\/td>.*//;
-
             next;
         }
     }
