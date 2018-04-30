@@ -7,7 +7,7 @@ use LWP::UserAgent;
 use HTTP::Cookies;
 use JSON qw( decode_json );
 
-my @stocks = ("AVGO");
+my @stocks = ("ABMD","ADBE","ALGN","AMAT","ANET","ASML","AVGO","AVY","AXP","BA","BABA","BIP","CAT","CC","CGNX","CME","CNC","CPRT","DE","FMC","HD","HTHT","IDXX","IPGP","ISRG","KNX","LRCX","MLCO","MTG","MU","NOC","NVDA","NVR","ODFL","OLED","PKG","PYPL","RACE","SPGI","SQM","STM","STZ","TECK","TTWO","UNH","VLO","VMW","WB","WDC","WLK","WP","WUBA","XPO","ZTS");
 
 my $finviz;
 my $finvizC;
@@ -24,7 +24,7 @@ my $i = 0;
 print
 "Symbol,Name,Exchange,Sector,Industry,".
 
-"Price,AverageVol,52WeekRange,PEG,Short,Target,Beta,DividendYield,FwdPE,MarketCAP,RSI,SMA20,SMA50,SMA200,PerfMn,PerfYr,".
+"Price,AverageVol,52WeekRange,PEG,Short,Target,Beta,DividendYield,FwdPE,MarketCAP,RSI,SMA20,SMA50,SMA200,PerfMn,PerfYr,Earnings,".
 
 "TheStreetRating,MeanRecommendation,NoOfBrokers,".
       "NavellierTotalGrade,NavellierQuantitativeGrade,NavellierFundamentalGrade,NavellierSalesGrowth,NavellierOperatingMarginGrowth,NavellierEarningsGrowth,".
@@ -54,6 +54,7 @@ for (my $i=0; $i < @stocks; $i++){
     $AllStocks{$stocks[$i]}{"SMA200"} = "";
     $AllStocks{$stocks[$i]}{"PerfMn"} = "";
     $AllStocks{$stocks[$i]}{"PerfYr"} = "";
+    $AllStocks{$stocks[$i]}{"Earnings"} = "";
     $AllStocks{$stocks[$i]}{"TheStreetRating"} = "";
     $AllStocks{$stocks[$i]}{"MeanRecommendation"} = "";
     $AllStocks{$stocks[$i]}{"NoOfBrokers"} = "";
@@ -199,17 +200,24 @@ for (my $i=0; $i < @stocks; $i++){
             $AllStocks{$stocks[$i]}{"Beta"} =~ s/.*<b>//;
             $AllStocks{$stocks[$i]}{"Beta"} =~ s/<\/b>.*//;
         }
-#   Problem - When DividendYield letters are colored, capture also gets <span color info>
         if ($finvizRows[$x] =~ /class="snapshot-td2-cp"/) {
             $AllStocks{$stocks[$i]}{"DividendYield"} = $finvizRows[$x+56];
             $AllStocks{$stocks[$i]}{"DividendYield"} =~ s/.*<b>//;
             $AllStocks{$stocks[$i]}{"DividendYield"} =~ s/<\/b>.*//;
+            $AllStocks{$stocks[$i]}{"DividendYield"} =~ s/.*<span style="color:#.*;">//;
+            $AllStocks{$stocks[$i]}{"DividendYield"} =~ s/<\/span>//;
         }
-#   Problem - When RSI letters are colored, capture also gets <span color info>
         if ($finvizRows[$x] =~ /class="snapshot-td2-cp"/) {
             $AllStocks{$stocks[$i]}{"RSI"} = $finvizRows[$x+68];
             $AllStocks{$stocks[$i]}{"RSI"} =~ s/.*<b>//;
             $AllStocks{$stocks[$i]}{"RSI"} =~ s/<\/b>.*//;
+            $AllStocks{$stocks[$i]}{"RSI"} =~ s/.*<span style="color:#.*;">//;
+            $AllStocks{$stocks[$i]}{"RSI"} =~ s/<\/span>//;
+        }
+        if ($finvizRows[$x] =~ /class="snapshot-td2-cp"/) {
+            $AllStocks{$stocks[$i]}{"Earnings"} = $finvizRows[$x+82];
+            $AllStocks{$stocks[$i]}{"Earnings"} =~ s/.*<b>//;
+            $AllStocks{$stocks[$i]}{"Earnings"} =~ s/<\/b>.*//;
         }
         if ($finvizRows[$x] =~ /class="snapshot-td2-cp"/) {
             $AllStocks{$stocks[$i]}{"AverageVol"} = $finvizRows[$x+84];
@@ -444,6 +452,7 @@ for (my $i=0; $i < @stocks; $i++){
     $AllStocks{$stocks[$i]}{"SMA200"}.",".
     $AllStocks{$stocks[$i]}{"PerfMn"}.",".
     $AllStocks{$stocks[$i]}{"PerfYr"}.",".
+    $AllStocks{$stocks[$i]}{"Earnings"}.",".
     $AllStocks{$stocks[$i]}{"TheStreetRating"}.",".
     $AllStocks{$stocks[$i]}{"MeanRecommendation"}.",".
     $AllStocks{$stocks[$i]}{"NoOfBrokers"}.",".
