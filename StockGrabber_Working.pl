@@ -247,9 +247,19 @@ for (my $i=0; $i < @stocks; $i++){
         }
     }
 
-    $Navellier = get("https://navelliergrowth.investorplace.com/portfolio-grader/stock-report.html?t=$stocks[$i]") or $Navellier = "";
-    my @NavellierRows = split("\n", $Navellier);
+    $ua = new LWP::UserAgent;
+    $ua->agent("$0/0.1 " . $ua->agent);
+    $req = new HTTP::Request 'GET' => "https://navelliergrowth.investorplace.com/portfolio-grader/stock-report.html?t=$stocks[$i]";
+    $req->header('Accept' => 'text/html');
+    $res = $ua->request($req);
+    if ($res->is_success) {
+       $Navellier = $res->decoded_content;
+    } else {
+       print "Error: " . $res->status_line . "\n";
+       $Navellier = "";
+    }
 
+    my @NavellierRows = split("\n", $Navellier);
     for (my $x = 0; $x <= $#NavellierRows; ++$x) {
         local $_ = $NavellierRows[$x];
         if (/Volatility:<\/strong>/) {
