@@ -7,7 +7,7 @@ use LWP::UserAgent;
 use HTTP::Cookies;
 use JSON qw( decode_json );
 
-my @stocks = ("ABMD","ADBE","ALGN","AMAT","ANET","ASML","AVGO","AVY","AXP","BA","BABA","BIP","CAT","CC","CGNX","CME","CNC","CPRT","DE","FMC","HD","HTHT","IDXX","IPGP","ISRG","KNX","LRCX","MLCO","MTG","MU","NOC","NVDA","NVR","ODFL","OLED","PKG","PYPL","RACE","SPGI","SQM","STM","STZ","TECK","TTWO","UNH","VLO","VMW","WB","WDC","WLK","WP","WUBA","XPO","ZTS");
+my @stocks = ("AVGO");
 
 my $finviz;
 my $finvizC;
@@ -247,7 +247,7 @@ for (my $i=0; $i < @stocks; $i++){
         }
     }
 
-    $Navellier = get("http://navelliergrowth.investorplace.com/portfolio-grader/stock-report.html?t=$stocks[$i]") or $Navellier = "";
+    $Navellier = get("https://navelliergrowth.investorplace.com/portfolio-grader/stock-report.html?t=$stocks[$i]") or $Navellier = "";
     my @NavellierRows = split("\n", $Navellier);
 
     for (my $x = 0; $x <= $#NavellierRows; ++$x) {
