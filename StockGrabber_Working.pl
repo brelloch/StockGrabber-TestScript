@@ -7,7 +7,7 @@ use LWP::UserAgent;
 use HTTP::Cookies;
 use JSON qw( decode_json );
 
-my @stocks = ("ABMD");
+my @stocks = ("AVGO");
 
 my $finviz;
 my $finvizC;
@@ -98,7 +98,7 @@ for (my $i=0; $i < @stocks; $i++){
     my $ua = LWP::UserAgent->new();
     $ua->agent("Mozilla/8.0");
 
-    my $req = new HTTP::Request GET => 'https://www.thestreet.com/quote/'.$stocks[$i].'/details/analyst-ratings.html';
+    my $req = new HTTP::Request GET => 'https://realmoney.thestreet.com/quote/'.$stocks[$i];
     my $res = $ua->request($req) or die 'Unable to get page thestreet with stock '.$stocks[$i];;
     my $content = $res->content;
 
@@ -342,13 +342,13 @@ for (my $i=0; $i < @stocks; $i++){
             $AllStocks{$stocks[$i]}{"ZacksValue"} = $extraInfo[1];
             $AllStocks{$stocks[$i]}{"ZacksValue"} =~ s/.*"composite_val">//;
             $AllStocks{$stocks[$i]}{"ZacksValue"} =~ s/<\/span>.*//;
-            $AllStocks{$stocks[$i]}{"ZacksGrowth"} = $extraInfo[4];
+            $AllStocks{$stocks[$i]}{"ZacksGrowth"} = $extraInfo[5];
             $AllStocks{$stocks[$i]}{"ZacksGrowth"} =~ s/.*"composite_val">//;
             $AllStocks{$stocks[$i]}{"ZacksGrowth"} =~ s/<\/span>.*//;
-            $AllStocks{$stocks[$i]}{"ZacksMomentum"} = $extraInfo[7];
+            $AllStocks{$stocks[$i]}{"ZacksMomentum"} = $extraInfo[9];
             $AllStocks{$stocks[$i]}{"ZacksMomentum"} =~ s/.*"composite_val">//;
             $AllStocks{$stocks[$i]}{"ZacksMomentum"} =~ s/<\/span>.*//;
-            $AllStocks{$stocks[$i]}{"ZacksVGM"} = $extraInfo[11];
+            $AllStocks{$stocks[$i]}{"ZacksVGM"} = $extraInfo[14];
             $AllStocks{$stocks[$i]}{"ZacksVGM"} =~ s/.*composite_val_vgm">//;
             $AllStocks{$stocks[$i]}{"ZacksVGM"} =~ s/<\/span>.*//;
             last;
