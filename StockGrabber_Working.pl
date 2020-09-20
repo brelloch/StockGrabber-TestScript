@@ -126,7 +126,6 @@ for (my $i=0; $i < @stocks; $i++){
     }
     my @finvizCRows = split("\n", $finvizC);
     for (my $x = 0; $x <= $#finvizCRows; ++$x) {
-        print "$finvizCRows[$x]\n";
         if ($finvizCRows[$x] =~ /class="fullview-ticker" id="ticker"/) {
             $AllStocks{$stocks[$i]}{"Symbol"} = $finvizCRows[$x];
             $AllStocks{$stocks[$i]}{"Symbol"} =~ s/.* class="fullview-ticker" id="ticker">//;
