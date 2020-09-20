@@ -7,7 +7,7 @@ use LWP::UserAgent;
 use HTTP::Cookies;
 use JSON qw( decode_json );
 
-my @stocks = ("AVGO");
+my @stocks = ("ABR");
 
 my $finviz;
 my $finvizC;
@@ -126,7 +126,7 @@ for (my $i=0; $i < @stocks; $i++){
             $AllStocks{$stocks[$i]}{"Exchange"} =~ s/.*<span class="body-table">//;
             $AllStocks{$stocks[$i]}{"Exchange"} =~ s/<\/span>.*//;
 #        }
-#   Problem - Comma "," in Company Name causes result to span 2 cells
+#   Ignore for now - Comma "," in Company Name causes result to span 2 cells
 #        if ($finvizCRows[$x] =~ /span class="body-table">/) {
 #            $AllStocks{$stocks[$i]}{"Name"} = $finvizCRows[$x+1];
 #            $AllStocks{$stocks[$i]}{"Name"} =~ s/.*<b>//;
@@ -134,11 +134,11 @@ for (my $i=0; $i < @stocks; $i++){
 #
 #            my @extraInfo = split(" \| ", $finvizCRows[$x+2]);
 #
-#   Problem - Sector captures only first word ex. for "Basic Materials", only displays "Basic"
+#   Ignore for now - Sector captures only first word ex. for "Basic Materials", only displays "Basic"
 #            $AllStocks{$stocks[$i]}{"Sector"} = $extraInfo[4];
 #            $AllStocks{$stocks[$i]}{"Sector"} =~ s/.*class="tab-link">//;
 #            $AllStocks{$stocks[$i]}{"Sector"} =~ s/<\/a>.*//;
-#   Problem - Industry captures only first word ex. for "Semiconductor - Broad Line", only displays "Semiconductor"
+#   Ignore for now - Industry captures only first word ex. for "Semiconductor - Broad Line", only displays "Semiconductor"
 #            $AllStocks{$stocks[$i]}{"Industry"} = $extraInfo[8];
 #            $AllStocks{$stocks[$i]}{"Industry"} =~ s/.*class="tab-link">//;
 #            $AllStocks{$stocks[$i]}{"Industry"} =~ s/<\/a>.*//;
@@ -337,7 +337,7 @@ for (my $i=0; $i < @stocks; $i++){
             $AllStocks{$stocks[$i]}{"ZacksRating"} =~ s/-.*//;
             $AllStocks{$stocks[$i]}{"ZacksRating"} =~ s/ .*//;
 
-            my @extraInfo = split(" \| ", $ZacksRows[$x+39]);
+            my @extraInfo = split(" \| ", $ZacksRows[$x+37]);
 
             $AllStocks{$stocks[$i]}{"ZacksValue"} = $extraInfo[1];
             $AllStocks{$stocks[$i]}{"ZacksValue"} =~ s/.*"composite_val">//;
@@ -385,7 +385,7 @@ for (my $i=0; $i < @stocks; $i++){
         }
     }
 
-#   Problem - Morningstar moved these to their premium service
+#   Ignore for now - Morningstar moved these to their premium service
 #    $Morningstar = get("http://quotes.morningstar.com/stock/$stocks[$i]/s?t=$stocks[$i]") or $Morningstar = "";
 #    my @MorningstarRows = split("\n", $Morningstar);
 #    foreach my $row (@MorningstarRows) {
