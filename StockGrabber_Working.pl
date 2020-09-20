@@ -113,9 +113,20 @@ for (my $i=0; $i < @stocks; $i++){
         }
     }
 
-    $finvizC = get("https://www.finviz.com/quote.ashx?t=$stocks[$i]") or $finvizC = "";
+    $ua = new LWP::UserAgent;
+    $ua->agent("$0/0.1 " . $ua->agent);
+    $req = new HTTP::Request 'GET' => "https://www.finviz.com/quote.ashx?t=$stocks[$i]";
+    $req->header('Accept' => 'text/html');
+    $res = $ua->request($req);
+    if ($res->is_success) {
+      $finvizC = $res->decoded_content;
+    } else {
+      print "Error: " . $res->status_line . "\n";
+      $finvizC = "";
+    }
     my @finvizCRows = split("\n", $finvizC);
     for (my $x = 0; $x <= $#finvizCRows; ++$x) {
+        print "$finvizCRows[$x]\n";
         if ($finvizCRows[$x] =~ /class="fullview-ticker" id="ticker"/) {
             $AllStocks{$stocks[$i]}{"Symbol"} = $finvizCRows[$x];
             $AllStocks{$stocks[$i]}{"Symbol"} =~ s/.* class="fullview-ticker" id="ticker">//;
