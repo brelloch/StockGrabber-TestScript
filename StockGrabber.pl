@@ -7,7 +7,7 @@ use LWP::UserAgent;
 use HTTP::Cookies;
 use JSON qw( decode_json );
 
-my @stocks = ("ADBE","AMT","BAH","BRO","CDNS","CLX","CMG","CPRT","DG","DOCU","DPZ","DXCM","FICO","FTNT","GMAB","GNRC","HD","IDXX","JD","KLAC","KR","LDOS","LOGI","LULU","MA","MSFT","NOW","NVAX","NVDA","PYPL","QDEL","RMD","SPGI","TDY","TEAM","UI","V","VEEV","VIPS","VRSK","WST","ZM","ZTS");
+my @stocks = ("ADBE","AMT","BAH","BRO","CDNS","CLX","CMG","CPRT","DG","DOCU","DPZ","DXCM","FICO","FTNT","GMAB","GNRC","HD","HZNP","IDXX","JD","KLAC","KR","LOGI","LULU","MA","MSFT","NOW","NVAX","NVDA","PYPL","QDEL","RMD","SPGI","TEAM","UI","V","VEEV","VIPS","VRSK","WST","ZM","ZTS");
 
 my $finviz;
 my $finvizC;

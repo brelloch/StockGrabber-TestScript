@@ -7,7 +7,7 @@ use LWP::UserAgent;
 use HTTP::Cookies;
 use JSON qw( decode_json );
 
-my @stocks = ("ABR");
+my @stocks = ("ADBE");
 
 my $finviz;
 my $finvizC;
@@ -155,7 +155,18 @@ for (my $i=0; $i < @stocks; $i++){
         }
     }
 
-    $finviz = get("https://www.finviz.com/quote.ashx?t=$stocks[$i]") or $finviz = "";
+    $ua = new LWP::UserAgent;
+    $ua->agent("$0/0.1 " . $ua->agent);
+    $req = new HTTP::Request 'GET' => "https://www.finviz.com/quote.ashx?t=$stocks[$i]";
+    $req->header('Accept' => 'text/html');
+    $res = $ua->request($req);
+    if ($res->is_success) {
+      $finviz = $res->decoded_content;
+    } else {
+      print "Error: " . $res->status_line . "\n";
+      $finviz = "";
+    }
+#    $finviz = get("https://www.finviz.com/quote.ashx?t=$stocks[$i]") or $finviz = "";    
     my @finvizRows = split("\n", $finviz);
     for (my $x = 0; $x <= $#finvizRows; ++$x) {
         if ($finvizRows[$x] =~ /class="snapshot-td2-cp"/) {
@@ -167,21 +178,22 @@ for (my $i=0; $i < @stocks; $i++){
             $AllStocks{$stocks[$i]}{"FwdPE"} = $finvizRows[$x+9];
             $AllStocks{$stocks[$i]}{"FwdPE"} =~ s/.*<b>//;
             $AllStocks{$stocks[$i]}{"FwdPE"} =~ s/<\/b>.*//;
-            $AllStocks{$stocks[$i]}{"FwdPE"} =~ s/.*<span style="color:#.*;">//;
+#           $AllStocks{$stocks[$i]}{"FwdPE"} =~ s/.*<span style="color:#.*;">//;
+            $AllStocks{$stocks[$i]}{"FwdPE"} =~ s/.*<span class="is-.*">//;
             $AllStocks{$stocks[$i]}{"FwdPE"} =~ s/<\/span>//;
         }
         if ($finvizRows[$x] =~ /class="snapshot-td2-cp"/) {
             $AllStocks{$stocks[$i]}{"PerfMn"} = $finvizRows[$x+13];
             $AllStocks{$stocks[$i]}{"PerfMn"} =~ s/.*<b>//;
             $AllStocks{$stocks[$i]}{"PerfMn"} =~ s/<\/b>.*//;
-            $AllStocks{$stocks[$i]}{"PerfMn"} =~ s/.*<span style="color:#.*;">//;
+            $AllStocks{$stocks[$i]}{"PerfMn"} =~ s/.*<span class="is-.*">//;
             $AllStocks{$stocks[$i]}{"PerfMn"} =~ s/<\/span>//;
         }
         if ($finvizRows[$x] =~ /class="snapshot-td2-cp"/) {
             $AllStocks{$stocks[$i]}{"PEG"} = $finvizRows[$x+17];
             $AllStocks{$stocks[$i]}{"PEG"} =~ s/.*<b>//;
             $AllStocks{$stocks[$i]}{"PEG"} =~ s/<\/b>.*//;
-            $AllStocks{$stocks[$i]}{"PEG"} =~ s/.*<span style="color:#.*;">//;
+            $AllStocks{$stocks[$i]}{"PEG"} =~ s/.*<span class="is-.*">//;
             $AllStocks{$stocks[$i]}{"PEG"} =~ s/<\/span>//;
         }
         if ($finvizRows[$x] =~ /class="snapshot-td2-cp"/) {
@@ -193,14 +205,14 @@ for (my $i=0; $i < @stocks; $i++){
             $AllStocks{$stocks[$i]}{"Target"} = $finvizRows[$x+36];
             $AllStocks{$stocks[$i]}{"Target"} =~ s/.*<b>//;
             $AllStocks{$stocks[$i]}{"Target"} =~ s/<\/b>.*//;
-            $AllStocks{$stocks[$i]}{"Target"} =~ s/.*<span style="color:#.*;">//;
+            $AllStocks{$stocks[$i]}{"Target"} =~ s/.*<span class="is-.*">//;
             $AllStocks{$stocks[$i]}{"Target"} =~ s/<\/span>//;
         }
         if ($finvizRows[$x] =~ /class="snapshot-td2-cp"/) {
             $AllStocks{$stocks[$i]}{"PerfYr"} = $finvizRows[$x+37];
             $AllStocks{$stocks[$i]}{"PerfYr"} =~ s/.*<b>//;
             $AllStocks{$stocks[$i]}{"PerfYr"} =~ s/<\/b>.*//;
-            $AllStocks{$stocks[$i]}{"PerfYr"} =~ s/.*<span style="color:#.*;">//;
+            $AllStocks{$stocks[$i]}{"PerfYr"} =~ s/.*<span class="is-.*">//;
             $AllStocks{$stocks[$i]}{"PerfYr"} =~ s/<\/span>//;
         }
         if ($finvizRows[$x] =~ /class="snapshot-td2-cp"/) {
@@ -217,14 +229,14 @@ for (my $i=0; $i < @stocks; $i++){
             $AllStocks{$stocks[$i]}{"DividendYield"} = $finvizRows[$x+56];
             $AllStocks{$stocks[$i]}{"DividendYield"} =~ s/.*<b>//;
             $AllStocks{$stocks[$i]}{"DividendYield"} =~ s/<\/b>.*//;
-            $AllStocks{$stocks[$i]}{"DividendYield"} =~ s/.*<span style="color:#.*;">//;
+            $AllStocks{$stocks[$i]}{"DividendYield"} =~ s/.*<span class="is-.*">//;
             $AllStocks{$stocks[$i]}{"DividendYield"} =~ s/<\/span>//;
         }
         if ($finvizRows[$x] =~ /class="snapshot-td2-cp"/) {
             $AllStocks{$stocks[$i]}{"RSI"} = $finvizRows[$x+68];
             $AllStocks{$stocks[$i]}{"RSI"} =~ s/.*<b>//;
             $AllStocks{$stocks[$i]}{"RSI"} =~ s/<\/b>.*//;
-            $AllStocks{$stocks[$i]}{"RSI"} =~ s/.*<span style="color:#.*;">//;
+            $AllStocks{$stocks[$i]}{"RSI"} =~ s/.*<span class="is-.*">//;
             $AllStocks{$stocks[$i]}{"RSI"} =~ s/<\/span>//;
         }
         if ($finvizRows[$x] =~ /class="snapshot-td2-cp"/) {
@@ -244,17 +256,23 @@ for (my $i=0; $i < @stocks; $i++){
         }
         if ($finvizRows[$x] =~ /class="snapshot-td2-cp"/) {
             $AllStocks{$stocks[$i]}{"SMA20"} = $finvizRows[$x+89];
-            $AllStocks{$stocks[$i]}{"SMA20"} =~ s/.*;">//;
+            $AllStocks{$stocks[$i]}{"SMA20"} =~ s/.*<b>//;
+            $AllStocks{$stocks[$i]}{"SMA20"} =~ s/<\/b>.*//;
+            $AllStocks{$stocks[$i]}{"SMA20"} =~ s/.*<span class="is-.*">//;
             $AllStocks{$stocks[$i]}{"SMA20"} =~ s/<\/span>.*//;
         }
         if ($finvizRows[$x] =~ /class="snapshot-td2-cp"/) {
             $AllStocks{$stocks[$i]}{"SMA50"} = $finvizRows[$x+90];
-            $AllStocks{$stocks[$i]}{"SMA50"} =~ s/.*;">//;
+            $AllStocks{$stocks[$i]}{"SMA50"} =~ s/.*<b>//;
+            $AllStocks{$stocks[$i]}{"SMA50"} =~ s/<\/b>.*//;
+            $AllStocks{$stocks[$i]}{"SMA50"} =~ s/.*<span class="is-.*">//;
             $AllStocks{$stocks[$i]}{"SMA50"} =~ s/<\/span>.*//;
         }
         if ($finvizRows[$x] =~ /class="snapshot-td2-cp"/) {
             $AllStocks{$stocks[$i]}{"SMA200"} = $finvizRows[$x+91];
-            $AllStocks{$stocks[$i]}{"SMA200"} =~ s/.*;">//;
+            $AllStocks{$stocks[$i]}{"SMA200"} =~ s/.*<b>//;
+            $AllStocks{$stocks[$i]}{"SMA200"} =~ s/<\/b>.*//;
+            $AllStocks{$stocks[$i]}{"SMA200"} =~ s/.*<span class="is-.*">//;
             $AllStocks{$stocks[$i]}{"SMA200"} =~ s/<\/span>.*//;
             last;
         }
