@@ -7,7 +7,7 @@ use LWP::UserAgent;
 use HTTP::Cookies;
 use JSON qw( decode_json );
 
-my @stocks = ("ADBE");
+my @stocks = ("ALGM");
 
 my $finviz;
 my $finvizC;
@@ -126,9 +126,14 @@ for (my $i=0; $i < @stocks; $i++){
     }
     my @finvizCRows = split("\n", $finvizC);
     for (my $x = 0; $x <= $#finvizCRows; ++$x) {
-        if ($finvizCRows[$x] =~ /class="fullview-ticker" id="ticker"/) {
+#        if ($finvizCRows[$x] =~ /class="fullview-ticker" id="ticker"/) {
+#            $AllStocks{$stocks[$i]}{"Symbol"} = $finvizCRows[$x];
+#            $AllStocks{$stocks[$i]}{"Symbol"} =~ s/.* class="fullview-ticker" id="ticker">//;
+#            $AllStocks{$stocks[$i]}{"Symbol"} =~ s/<\/a>.*//;
+# JFB change to fix SYMBOL print
+        if ($finvizCRows[$x] =~ /class="text-blue-500"/) {
             $AllStocks{$stocks[$i]}{"Symbol"} = $finvizCRows[$x];
-            $AllStocks{$stocks[$i]}{"Symbol"} =~ s/.* class="fullview-ticker" id="ticker">//;
+            $AllStocks{$stocks[$i]}{"Symbol"} =~ s/.* class="tab-link" id="ticker">//;
             $AllStocks{$stocks[$i]}{"Symbol"} =~ s/<\/a>.*//;
         }
         if ($finvizCRows[$x] =~ /span class="body-table">/) {
